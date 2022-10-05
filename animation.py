@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 from costmap import Vehicle, _map
 
-
 def plot_obstacles(map):
     plt.ion()
     plt.figure(1)
