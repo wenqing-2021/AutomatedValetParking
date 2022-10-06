@@ -7,6 +7,7 @@ import numpy as np
 from scipy.optimize import minimize
 import math
 
+
 class velocity_planner:
     def __init__(self,
                  vehicle: Vehicle):
@@ -18,25 +19,33 @@ class velocity_planner:
     def compute_traj_length(self, path):
         traj_length = 0
         for i in range(len(path) - 1):
-            s_i = math.sqrt((path[i][0] - path[i+1][0])**2+(path[i][1] - path[i+1][1])**2)
+            s_i = math.sqrt((path[i][0] - path[i+1][0]) **
+                            2+(path[i][1] - path[i+1][1])**2)
             traj_length = traj_length + s_i
         return traj_length
 
-    # use v(t) = Asin(wt) to plan the velocity
+    # use v(t) = Asin(wt) to plan the velocity, a(t) = Aw cos(wt)
     def solve_nlp(self, path):
         s = self.compute_traj_length(path)
         e = 1e-10
-        fun = lambda x : (x[0] + (x[1]*x[2])**2/2*x[0] + x[1]/4*x[2]**2*math.sin(2*x[1]*x[0]))
-        cons = ({"type": "ineq", "fun": lambda x: x[2] - e},
-                {"type": "ineq", "fun": lambda x: x[0] - e},
-                {"type": "ineq", "fun": lambda x: x[1] - e},
+
+        # def fun(x): return (x[0] + (x[1]*x[2])**2/2 *
+        #                     x[0] + x[1]/4*x[2]**2*math.sin(2*x[1]*x[0]))
+
+        def fun(x): return (x[0])
+        cons = ({"type": "ineq", "fun": lambda x: x[2] - e},  # t0 > 0
+                {"type": "ineq", "fun": lambda x: x[0] - e},  # A > 0
+                {"type": "ineq", "fun": lambda x: x[1] - e},  # W > 0
+                # v < max velocity
                 {"type": "ineq", "fun": lambda x: self.max_v-x[2]},
-                {"type": "ineq", "fun": lambda x: x[1]*x[2]-e},
-                {"type": "ineq", "fun": lambda x: self.max_acceleration-x[1]*x[2]},
+                {"type": "ineq", "fun": lambda x: x[1]*x[2]-e},  # Aw > 0
+                {"type": "ineq",
+                    "fun": lambda x: self.max_acceleration-x[1]*x[2]},  # a < max acceleration
                 {"type": "eq", "fun": lambda x: x[0]*x[1] - math.pi},
-                {"type": "eq", "fun": lambda x: s-x[2]/x[1]+x[2]/x[1]*math.cos(x[1]*x[0])},
-        )
-        x0 = np.array((4.0, 0.6, 1.0))
+                {"type": "eq", "fun": lambda x: s -
+                    x[2]/x[1]+x[2]/x[1]*math.cos(x[1]*x[0])},
+                )
+        x0 = np.array((4.0, 0.5, 2.0))
         result = minimize(fun=fun, x0=x0, method="SLSQP", constraints=cons)
         optimal_solve = result.x
         A = optimal_solve[2]
@@ -45,7 +54,7 @@ class velocity_planner:
 
         print('terminate_time:', terminate_t)
 
-        self.plan_result = {"A": A, "W":W, "t1": terminate_t}
+        self.plan_result = {"A": A, "W": W, "t1": terminate_t}
 
         def velocity_func(t):
             '''
@@ -53,7 +62,7 @@ class velocity_planner:
             :return: velocity
             '''
             return A * math.sin(W * t)
-        
+
         def acc_func(t):
             '''
             :param dt: input the moment
@@ -78,4 +87,3 @@ class velocity_planner:
 class velocity_optimize:
     def __init__(self) -> None:
         pass
-
