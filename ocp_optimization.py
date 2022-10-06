@@ -1,5 +1,6 @@
 # Author: Yuansj
 # 2022/10.01
+# 问题记录：求解失败，因为内存溢出。
 
 '''
 This function is used to find an optimal traj for the parking. the initial solution is from path_optimazition.py.
@@ -7,26 +8,26 @@ the usage of cyipopt is https://cyipopt.readthedocs.io/en/stable/tutorial.html#p
 '''
 
 import jax.numpy as np
-from jax import jit, grad, jacfwd
+from jax import jit, grad, jacfwd, jacrev
 from cyipopt import minimize_ipopt
 from costmap import _map, Vehicle
 import math
 
+# wheel base
+Lw = 2.8
+
 
 class ocp_optimization:
     def __init__(self,
-                 path: list,
                  park_map: _map,
-                 vehicle: Vehicle) -> None:
-        initial_path = np.array(path)
-        initial_path = initial_path[:, :-1]
-        tf = path[-1, -1]
-        self.initial_solution = np.append(initial_path, tf)
-        self.original_path = path
-        self.park_map = park_map
+                 vehicle: Vehicle,
+                 config: dict) -> None:
+        self.config = config
+        self.map = park_map
         self.vehicle = vehicle
+        self.expand_dis = config['expand_dis']  # m
 
-    def compute_collision_H(self):
+    def compute_collision_H(self, path):
         '''
         use AABB block to find those map points near the vehicle
         and then find the shortest distance from these points to 
@@ -35,7 +36,7 @@ class ocp_optimization:
         b_d is to the rear edge, and r_d is to the right edge, l_d is 
         to the left edge.
         [E;-E] X <= [H_max;-H_min]
-        return: H_max, H_min
+        return: x_max, y_max, x_min, y_min
         '''
 
         # get near obstacles and vehicle
@@ -115,11 +116,13 @@ class ocp_optimization:
             horizon_dis = shortest_dis / abs(np.sin(theta))
             return float(horizon_dis), float(vertical_dis)
 
-        H_max = []
-        H_min = []
-        points_n = len(self.original_path)
+        original_path = path
+        X_max = []
+        Y_max = []
+        X_min = []
+        Y_min = []
         # create AABB boundary and get the near obstacles position
-        for p in self.original_path:
+        for p in original_path:
             x, y, theta = p[0], p[1], p[2]
             near_obstacles_range, vehicle_boundary = get_near_obstacles(node_x=x, node_y=y,
                                                                         theta=theta, map=self.map, config=self.config)
@@ -455,182 +458,251 @@ class ocp_optimization:
 
                         k += 1
 
-            H_max.append(x_max+x)
-            H_max.append(y_max+y)
-            H_min.append(x-x_min)
-            H_min.append(y-y_min)
+            X_max.append(x_max+x)
+            Y_max.append(y_max+y)
+            X_min.append(x-x_min)
+            Y_min.append(y-y_min)
 
-        H_max_matrix = np.array(H_max).reshape(len(H_max), 1)
-        H_min_matrix = np.array(H_min).reshape(len(H_min), 1)
+        # X_max_matrix = np.array(X_max).reshape(len(X_max), 1)
+        # Y_max_matrix = np.array(Y_max).reshape(len(Y_max), 1)
+        # X_min_matrix = np.array(X_min).reshape(len(X_min), 1)
+        # Y_min_matrix = np.array(Y_min).reshape(len(Y_min), 1)
         # H_collision_matrix = np.vstack((H_max_matrix, -H_min_matrix))
         # slack_H_collision_matrix = np.vstack((H_max_matrix, 999*np.ones((points_n-2, 1)),
         #                                       -H_min_matrix, np.zeros((points_n-2, 1))))
 
-        return H_max_matrix, H_min_matrix
+        return X_max, Y_max, X_min, Y_min
 
-    def solution(self):
-
-        def objective(x):
-            '''
-            the objective funtion is min: t + a^2+w^2+v^2 + \sigma^2
-            input: x, y, theta, v, a, delta, w, ..., tf
-            '''
-            t = x[-1]
-            length = len(x) - 1
-            n = length / 7
-            vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
-            vector_a = np.array([0, 0, 0, 0, 1, 0, 0])
-            vector_s = np.array([0, 0, 0, 0, 0, 1, 0])
-            vector_w = np.array([0, 0, 0, 0, 0, 0, 1])
-            Matrix_v = np.zeros((1, length))
-            Matrix_a = np.zeros((1, length))
-            Matrix_s = np.zeros((1, length))
-            Matrix_w = np.zeros((1, length))
-
-            for i in range(n):
-                previous = np.zeros(7 * i)
-                after = np.zeros(7 * (n-1-i))
-
-                row_a = np.hstack((previous, vector_a, after, 0))
-                Matrix_a = np.vstack((Matrix_a, row_a))
-
-                row_v = np.hstack((previous, vector_v, after, 0))
-                Matrix_v = np.vstack((Matrix_v, row_v))
-
-                row_s = np.hstack((previous, vector_s, after, 0))
-                Matrix_s = np.vstack((Matrix_s, row_s))
-
-                row_w = np.hstack((previous, vector_w, after, 0))
-                Matrix_w = np.vstack((Matrix_w, row_w))
-
-            Matrix_a = Matrix_a[1:]
-            Matrix_v = Matrix_v[1:]
-            Matrix_s = Matrix_s[1:]
-            Matrix_w = Matrix_w[1:]
-
-            a2 = np.inner(Matrix_a, x)
-            a2_sum = np.inner(a2, a2)
-
-            v2 = np.inner(Matrix_v, x)
-            v2_sum = np.inner(v2, v2)
-
-            s2 = np.inner(Matrix_s, x)
-            s2_sum = np.inner(s2, s2)
-
-            w2 = np.inner(Matrix_w, x)
-            w2_sum = np.inner(w2, w2)
-
-            return t + a2_sum + v2_sum + s2_sum + w2_sum
-
-        def kinematic_constraints_x(x):
-            '''
-            kinematic constraint
-            '''
-            N = (len(x) - 1) / 7
-            dt = x[-1] / (N - 1)  # tf / (N -1 )
-            vector_x = np.array([1, 0, 0, 0, 0, 0, 0])
-            vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
-            vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
-            Matrix_x = np.zeros((1, N))
-            Matrix_v = np.zeros((1, N))
-            Matrix_theta = np.zeros((1, N))
-            for i in range(N):
-                previous = np.zeros(7 * i)
-                after = np.zeros(7 * (N-1-i))
-
-                row_x = np.hstack((previous, vector_x, after, 0))
-                row_v = np.hstack((previous, vector_v, after, 0))
-                row_theta = np.hstack((previous, vector_theta, after, 0))
-
-                Matrix_x = np.vstack((Matrix_x, row_x))
-                Matrix_v = np.vstack((Matrix_v, row_v))
-                Matrix_theta = np.vstack((Matrix_theta, row_theta))
-
-            Matrix_x = Matrix_x[1:]
-            Matrix_v = Matrix_v[1:]
-            Matrix_theta = Matrix_theta[1:]
-            all_x = np.inner(Matrix_x, x)
-            all_v = np.inner(Matrix_v, x)
-            all_theta = np.inner(Matrix_theta, x)
-
-            # all_x[1:] = all_x[:-1] + all_v[:-1] * dt * np.cos(all_theta[:-1])
-
-            return all_x[1:] - (all_x[:-1] + all_v[:-1] * dt * np.cos(all_theta[:-1]))
-
-        def kinematic_constraints_y(x):
-            '''
-            kinematic constraint
-            '''
-            N = (len(x) - 1) / 7
-            dt = x[-1] / (N - 1)  # tf / (N -1 )
-            vector_y = np.array([0, 1, 0, 0, 0, 0, 0])
-            vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
-            vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
-            Matrix_y = np.zeros((1, N))
-            Matrix_v = np.zeros((1, N))
-            Matrix_theta = np.zeros((1, N))
-            for i in range(N):
-                previous = np.zeros(7 * i)
-                after = np.zeros(7 * (N-1-i))
-
-                row_y = np.hstack((previous, vector_y, after, 0))
-                row_v = np.hstack((previous, vector_v, after, 0))
-                row_theta = np.hstack((previous, vector_theta, after, 0))
-
-                Matrix_y = np.vstack((Matrix_y, row_y))
-                Matrix_v = np.vstack((Matrix_v, row_v))
-                Matrix_theta = np.vstack((Matrix_theta, row_theta))
-
-            Matrix_y = Matrix_y[1:]
-            Matrix_v = Matrix_v[1:]
-            Matrix_theta = Matrix_theta[1:]
-            all_y = np.inner(Matrix_y, x)
-            all_v = np.inner(Matrix_v, x)
-            all_theta = np.inner(Matrix_theta, x)
-
-            # all_y[1:] = all_y[:-1] + all_v[:-1] * dt * np.sin(all_s[:-1])
-
-            return all_y[1:] - (all_y[:-1] + all_v[:-1] * dt * np.sin(all_theta[:-1]))
-
-        def kinematic_constraints_theta(x):
-            '''
-            kinematic constraint
-            '''
-            Lw = 2.8
-            N = (len(x) - 1) / 7
-            dt = x[-1] / (N - 1)  # tf / (N -1 )
-            vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
-            vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
-            vector_s = np.array([0, 0, 0, 0, 0, 1, 0])
-            Matrix_theta = np.zeros((1, N))
-            Matrix_v = np.zeros((1, N))
-            Matrix_s = np.zeros((1, N))
-            for i in range(N):
-                previous = np.zeros(7 * i)
-                after = np.zeros(7 * (N-1-i))
-
-                row_theta = np.hstack((previous, vector_theta, after, 0))
-                row_v = np.hstack((previous, vector_v, after, 0))
-                row_s = np.hstack((previous, vector_s, after, 0))
-
-                Matrix_theta = np.vstack((Matrix_theta, row_theta))
-                Matrix_v = np.vstack((Matrix_v, row_v))
-                Matrix_s = np.vstack((Matrix_s, row_s))
-
-            Matrix_theta = Matrix_theta[1:]
-            Matrix_v = Matrix_v[1:]
-            Matrix_s = Matrix_s[1:]
-            all_theta = np.inner(Matrix_theta, x)
-            all_v = np.inner(Matrix_v, x)
-            all_s = np.inner(Matrix_s, x)
-
-            # all_theta[1:] = all_theta[:-1] + all_v[:-1] * dt * np.tan(all_s[:-1]) / Lw
-
-            return all_theta[1:] - (all_theta[:-1] + all_v[:-1] * dt * np.tan(all_s[:-1]) / Lw)
-
-        def ineq_constrains(x):
-            pass
+    def solution(self, path: list):
+        '''
+        input: path is a list, [[x,y,theta,v,a,sigma,omega,t],[x,y...],...,[x,y...]]
+        '''
+        initial_path = np.array(path)[:, :-1]
+        tf = path[-1][-1]
+        '''
+        initial_solution: [x_1,y_1,theta_1,v_1,a_1,sigma_1,omega_1,x_2,y_2,...,omega_n,tf]
+        '''
+        initial_solution = np.append(initial_path, tf)
 
         # get collision bounds
+        x_max, y_max, x_min, y_min = self.compute_collision_H(path=path)
+        bnds = []
+        for i in range(len(initial_path)):
+            bnds.append((x_min[i], x_max[i]))
+            bnds.append((y_min[i], y_max[i]))
+            bnds.append((-math.pi, math.pi))
+            bnds.append((-2.5, 2.5))
+            bnds.append((-1, 1))
+            bnds.append((-0.75, 0.75))
+            bnds.append((-0.5, 0.5))
 
-        # get maximum and min bounds
+        # tf bounds
+        bnds.append((0, 300))
+
+        # solution
+        # jit the functions
+        obj_jit = jit(objective)
+        con_eq_x_jit = jit(kinematic_constraints_x)
+        con_eq_y_jit = jit(kinematic_constraints_y)
+        con_eq_theta_jit = jit(kinematic_constraints_theta)
+
+        # build the derivatives and jit them
+        obj_grad = jit(grad(obj_jit))  # objective gradient
+        obj_hess = jit(jacrev(jacfwd(obj_jit)))  # objective hessian
+
+        con_eq_x_jac = jit(jacfwd(con_eq_x_jit))  # jacobian
+        con_eq_y_jac = jit(jacfwd(con_eq_y_jit))  # jacobian
+        con_eq_theta_jac = jit(jacfwd(con_eq_theta_jit))  # jacobian
+
+        con_eq_x_hess = jacrev(jacfwd(con_eq_x_jit))  # hessian
+        con_eq_x_hessvp = jit(lambda x, v: con_eq_x_hess(
+            x) * v[0])  # hessian vector-product
+        con_eq_y_hess = jacrev(jacfwd(con_eq_y_jit))  # hessian
+        con_eq_y_hessvp = jit(lambda x, v: con_eq_y_hess(
+            x) * v[0])  # hessian vector-product
+        con_eq_theta_hess = jacrev(jacfwd(con_eq_theta_jit))  # hessian
+        con_eq_theta_hessvp = jit(lambda x, v: con_eq_theta_hess(
+            x) * v[0])  # hessian vector-product
+
+        # constraints
+        cons = [{'type': 'eq', 'fun': con_eq_x_jit, 'jac': con_eq_x_jac, 'hess': con_eq_x_hessvp},
+                {'type': 'eq', 'fun': con_eq_y_jit,
+                    'jac': con_eq_y_jac, 'hess': con_eq_y_hessvp},
+                {'type': 'eq', 'fun': con_eq_theta_jit, 'jac': con_eq_theta_jac, 'hess': con_eq_theta_hessvp}, ]
+
+        # starting point
+        x0 = initial_solution
+
+        # executing the solver
+        res = minimize_ipopt(obj_jit, jac=obj_grad, hess=obj_hess, x0=x0, bounds=bnds,
+                             constraints=cons, options={'disp': 5})
+
+        print('solved ocp problem')
+
+        return res
+
+
+def objective(x):
+    '''
+    the objective funtion is min: t + a^2+w^2+v^2 + \sigma^2
+    input: x, y, theta, v, a, delta, w, ..., tf
+    '''
+    t = x[-1]
+    length = len(x) - 1
+    n = int(length / 7)
+    vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
+    vector_a = np.array([0, 0, 0, 0, 1, 0, 0])
+    vector_s = np.array([0, 0, 0, 0, 0, 1, 0])
+    vector_w = np.array([0, 0, 0, 0, 0, 0, 1])
+    Matrix_v = np.zeros((1, len(x)))
+    Matrix_a = np.zeros((1, len(x)))
+    Matrix_s = np.zeros((1, len(x)))
+    Matrix_w = np.zeros((1, len(x)))
+
+    for i in range(n):
+        previous = np.zeros(7 * i)
+        after = np.zeros(7 * (n-1-i))
+
+        row_a = np.hstack(
+            (previous, vector_a, after, 0))  # 0 is the tf
+        Matrix_a = np.vstack((Matrix_a, row_a))
+
+        row_v = np.hstack((previous, vector_v, after, 0))
+        Matrix_v = np.vstack((Matrix_v, row_v))
+
+        row_s = np.hstack((previous, vector_s, after, 0))
+        Matrix_s = np.vstack((Matrix_s, row_s))
+
+        row_w = np.hstack((previous, vector_w, after, 0))
+        Matrix_w = np.vstack((Matrix_w, row_w))
+
+    Matrix_a = Matrix_a[1:]
+    Matrix_v = Matrix_v[1:]
+    Matrix_s = Matrix_s[1:]
+    Matrix_w = Matrix_w[1:]
+
+    a2 = np.inner(Matrix_a, x)
+    a2_sum = np.inner(a2, a2)
+
+    v2 = np.inner(Matrix_v, x)
+    v2_sum = np.inner(v2, v2)
+
+    s2 = np.inner(Matrix_s, x)
+    s2_sum = np.inner(s2, s2)
+
+    w2 = np.inner(Matrix_w, x)
+    w2_sum = np.inner(w2, w2)
+
+    return t + a2_sum + v2_sum + s2_sum + w2_sum
+
+
+def kinematic_constraints_x(x):
+    '''
+    kinematic constraint
+    '''
+    N = int((len(x) - 1) / 7)
+    dt = x[-1] / (N - 1)  # tf / (N -1 )
+    vector_x = np.array([1, 0, 0, 0, 0, 0, 0])
+    vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
+    vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
+    Matrix_x = np.zeros((1, len(x)))
+    Matrix_v = np.zeros((1, len(x)))
+    Matrix_theta = np.zeros((1, len(x)))
+    for i in range(N):
+        previous = np.zeros(7 * i)
+        after = np.zeros(7 * (N-1-i))
+
+        row_x = np.hstack((previous, vector_x, after, 0))  # 0 means tf
+        row_v = np.hstack((previous, vector_v, after, 0))
+        row_theta = np.hstack((previous, vector_theta, after, 0))
+
+        Matrix_x = np.vstack((Matrix_x, row_x))
+        Matrix_v = np.vstack((Matrix_v, row_v))
+        Matrix_theta = np.vstack((Matrix_theta, row_theta))
+
+    Matrix_x = Matrix_x[1:]
+    Matrix_v = Matrix_v[1:]
+    Matrix_theta = Matrix_theta[1:]
+    all_x = np.inner(Matrix_x, x)
+    all_v = np.inner(Matrix_v, x)
+    all_theta = np.inner(Matrix_theta, x)
+
+    # all_x[1:] = all_x[:-1] + all_v[:-1] * dt * np.cos(all_theta[:-1])
+
+    return all_x[1:] - (all_x[:-1] + all_v[:-1] * dt * np.cos(all_theta[:-1]))
+
+
+def kinematic_constraints_y(x):
+    '''
+    kinematic constraint
+    '''
+    N = int((len(x) - 1) / 7)
+    dt = x[-1] / (N - 1)  # tf / (N -1 )
+    vector_y = np.array([0, 1, 0, 0, 0, 0, 0])
+    vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
+    vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
+    Matrix_y = np.zeros((1, len(x)))
+    Matrix_v = np.zeros((1, len(x)))
+    Matrix_theta = np.zeros((1, len(x)))
+    for i in range(N):
+        previous = np.zeros(7 * i)
+        after = np.zeros(7 * (N-1-i))
+
+        row_y = np.hstack((previous, vector_y, after, 0))
+        row_v = np.hstack((previous, vector_v, after, 0))
+        row_theta = np.hstack((previous, vector_theta, after, 0))
+
+        Matrix_y = np.vstack((Matrix_y, row_y))
+        Matrix_v = np.vstack((Matrix_v, row_v))
+        Matrix_theta = np.vstack((Matrix_theta, row_theta))
+
+    Matrix_y = Matrix_y[1:]
+    Matrix_v = Matrix_v[1:]
+    Matrix_theta = Matrix_theta[1:]
+    all_y = np.inner(Matrix_y, x)
+    all_v = np.inner(Matrix_v, x)
+    all_theta = np.inner(Matrix_theta, x)
+
+    # all_y[1:] = all_y[:-1] + all_v[:-1] * dt * np.sin(all_s[:-1])
+
+    return all_y[1:] - (all_y[:-1] + all_v[:-1] * dt * np.sin(all_theta[:-1]))
+
+
+def kinematic_constraints_theta(x):
+    '''
+    kinematic constraint
+    '''
+    N = int((len(x) - 1) / 7)
+    dt = x[-1] / (N - 1)  # tf / (N -1 )
+    vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
+    vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
+    vector_s = np.array([0, 0, 0, 0, 0, 1, 0])
+    Matrix_theta = np.zeros((1, len(x)))
+    Matrix_v = np.zeros((1, len(x)))
+    Matrix_s = np.zeros((1, len(x)))
+    for i in range(N):
+        previous = np.zeros(7 * i)
+        after = np.zeros(7 * (N-1-i))
+
+        row_theta = np.hstack((previous, vector_theta, after, 0))
+        row_v = np.hstack((previous, vector_v, after, 0))
+        row_s = np.hstack((previous, vector_s, after, 0))
+
+        Matrix_theta = np.vstack((Matrix_theta, row_theta))
+        Matrix_v = np.vstack((Matrix_v, row_v))
+        Matrix_s = np.vstack((Matrix_s, row_s))
+
+    Matrix_theta = Matrix_theta[1:]
+    Matrix_v = Matrix_v[1:]
+    Matrix_s = Matrix_s[1:]
+    all_theta = np.inner(Matrix_theta, x)
+    all_v = np.inner(Matrix_v, x)
+    all_s = np.inner(Matrix_s, x)
+
+    # all_theta[1:] = all_theta[:-1] + all_v[:-1] * dt * np.tan(all_s[:-1]) / Lw
+
+    return all_theta[1:] - (all_theta[:-1] + all_v[:-1] * dt * np.tan(all_s[:-1]) / Lw)
+
+
+def ineq_constrains(x):
+    pass

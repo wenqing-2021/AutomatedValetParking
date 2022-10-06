@@ -60,7 +60,8 @@ class interpolation:
                 v = velocity_func(t)
 
             # store the insert points in the transformed path list
-            trans_path = [[0, 0, 0, 0, acc_func(t), t]]
+            # assume the initial point has the velocity, we need it to compute the steering angle
+            trans_path = [[0, 0, 0, v, acc_func(t), t]]
             delta_dis = v * self.insert_dt * math.cos(trans_path[-1][2])
 
             if forward:
@@ -139,7 +140,6 @@ class interpolation:
         insert_path[-2].insert(6, omega)
 
         # plot_final_path(path=insert_path, map=self.map, color='blue')
-
         return insert_path
 
     def solve_cubic_spline(self, start, end):
