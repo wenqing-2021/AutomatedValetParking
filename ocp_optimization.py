@@ -477,6 +477,185 @@ class ocp_optimization:
         '''
         input: path is a list, [[x,y,theta,v,a,sigma,omega,t],[x,y...],...,[x,y...]]
         '''
+        def objective(x):
+            '''
+            the objective funtion is min: t + a^2+w^2+v^2 + \sigma^2
+            input: x, y, theta, v, a, delta, w, ..., tf
+            '''
+            t = x[-1]
+            length = len(x) - 1
+            n = int(length / 7)
+            vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
+            vector_a = np.array([0, 0, 0, 0, 1, 0, 0])
+            vector_s = np.array([0, 0, 0, 0, 0, 1, 0])
+            vector_w = np.array([0, 0, 0, 0, 0, 0, 1])
+            Matrix_v = np.zeros((1, len(x)))
+            Matrix_a = np.zeros((1, len(x)))
+            Matrix_s = np.zeros((1, len(x)))
+            Matrix_w = np.zeros((1, len(x)))
+
+            for i in range(n):
+                previous = np.zeros(7 * i)
+                after = np.zeros(7 * (n-1-i))
+
+                row_a = np.hstack(
+                    (previous, vector_a, after, 0))  # 0 is the tf
+                Matrix_a = np.vstack((Matrix_a, row_a))
+
+                row_v = np.hstack((previous, vector_v, after, 0))
+                Matrix_v = np.vstack((Matrix_v, row_v))
+
+                row_s = np.hstack((previous, vector_s, after, 0))
+                Matrix_s = np.vstack((Matrix_s, row_s))
+
+                row_w = np.hstack((previous, vector_w, after, 0))
+                Matrix_w = np.vstack((Matrix_w, row_w))
+
+            Matrix_a = Matrix_a[1:]
+            Matrix_v = Matrix_v[1:]
+            Matrix_s = Matrix_s[1:]
+            Matrix_w = Matrix_w[1:]
+
+            a2 = np.inner(Matrix_a, x)
+            a2_sum = np.inner(a2, a2)
+
+            v2 = np.inner(Matrix_v, x)
+            v2_sum = np.inner(v2, v2)
+
+            s2 = np.inner(Matrix_s, x)
+            s2_sum = np.inner(s2, s2)
+
+            w2 = np.inner(Matrix_w, x)
+            w2_sum = np.inner(w2, w2)
+
+            return t + a2_sum + v2_sum + s2_sum + w2_sum
+
+        def kinematic_constraints_x(x):
+            '''
+            kinematic constraint
+            '''
+            N = int((len(x) - 1) / 7)
+            dt = x[-1] / (N - 1)  # tf / (N -1 )
+            vector_x = np.array([1, 0, 0, 0, 0, 0, 0])
+            vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
+            vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
+            Matrix_x = np.zeros((1, len(x)))
+            Matrix_v = np.zeros((1, len(x)))
+            Matrix_theta = np.zeros((1, len(x)))
+            for i in range(N):
+                previous = np.zeros(7 * i)
+                after = np.zeros(7 * (N-1-i))
+
+                row_x = np.hstack((previous, vector_x, after, 0))  # 0 means tf
+                row_v = np.hstack((previous, vector_v, after, 0))
+                row_theta = np.hstack((previous, vector_theta, after, 0))
+
+                Matrix_x = np.vstack((Matrix_x, row_x))
+                Matrix_v = np.vstack((Matrix_v, row_v))
+                Matrix_theta = np.vstack((Matrix_theta, row_theta))
+
+            Matrix_x = Matrix_x[1:]
+            Matrix_v = Matrix_v[1:]
+            Matrix_theta = Matrix_theta[1:]
+            all_x = np.inner(Matrix_x, x)
+            all_v = np.inner(Matrix_v, x)
+            all_theta = np.inner(Matrix_theta, x)
+
+            # all_x[1:] = all_x[:-1] + all_v[:-1] * dt * np.cos(all_theta[:-1])
+
+            return all_x[1:] - (all_x[:-1] + all_v[:-1] * dt * np.cos(all_theta[:-1]))
+
+        def kinematic_constraints_y(x):
+            '''
+            kinematic constraint
+            '''
+            N = int((len(x) - 1) / 7)
+            dt = x[-1] / (N - 1)  # tf / (N -1 )
+            vector_y = np.array([0, 1, 0, 0, 0, 0, 0])
+            vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
+            vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
+            Matrix_y = np.zeros((1, len(x)))
+            Matrix_v = np.zeros((1, len(x)))
+            Matrix_theta = np.zeros((1, len(x)))
+            for i in range(N):
+                previous = np.zeros(7 * i)
+                after = np.zeros(7 * (N-1-i))
+
+                row_y = np.hstack((previous, vector_y, after, 0))
+                row_v = np.hstack((previous, vector_v, after, 0))
+                row_theta = np.hstack((previous, vector_theta, after, 0))
+
+                Matrix_y = np.vstack((Matrix_y, row_y))
+                Matrix_v = np.vstack((Matrix_v, row_v))
+                Matrix_theta = np.vstack((Matrix_theta, row_theta))
+
+            Matrix_y = Matrix_y[1:]
+            Matrix_v = Matrix_v[1:]
+            Matrix_theta = Matrix_theta[1:]
+            all_y = np.inner(Matrix_y, x)
+            all_v = np.inner(Matrix_v, x)
+            all_theta = np.inner(Matrix_theta, x)
+
+            # all_y[1:] = all_y[:-1] + all_v[:-1] * dt * np.sin(all_s[:-1])
+
+            return all_y[1:] - (all_y[:-1] + all_v[:-1] * dt * np.sin(all_theta[:-1]))
+
+        def kinematic_constraints_theta(x):
+            '''
+            kinematic constraint
+            '''
+            N = int((len(x) - 1) / 7)
+            dt = x[-1] / (N - 1)  # tf / (N -1 )
+            vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
+            vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
+            vector_s = np.array([0, 0, 0, 0, 0, 1, 0])
+            Matrix_theta = np.zeros((1, len(x)))
+            Matrix_v = np.zeros((1, len(x)))
+            Matrix_s = np.zeros((1, len(x)))
+            for i in range(N):
+                previous = np.zeros(7 * i)
+                after = np.zeros(7 * (N-1-i))
+
+                row_theta = np.hstack((previous, vector_theta, after, 0))
+                row_v = np.hstack((previous, vector_v, after, 0))
+                row_s = np.hstack((previous, vector_s, after, 0))
+
+                Matrix_theta = np.vstack((Matrix_theta, row_theta))
+                Matrix_v = np.vstack((Matrix_v, row_v))
+                Matrix_s = np.vstack((Matrix_s, row_s))
+
+            Matrix_theta = Matrix_theta[1:]
+            Matrix_v = Matrix_v[1:]
+            Matrix_s = Matrix_s[1:]
+            all_theta = np.inner(Matrix_theta, x)
+            all_v = np.inner(Matrix_v, x)
+            all_s = np.inner(Matrix_s, x)
+
+            # all_theta[1:] = all_theta[:-1] + all_v[:-1] * dt * np.tan(all_s[:-1]) / Lw
+
+            return all_theta[1:] - (all_theta[:-1] + all_v[:-1] * dt * np.tan(all_s[:-1]) / Lw)
+
+        def initial_pose_eq_constraints(x):
+            previous = np.array([1, 1, 1])
+            last = np.zeros(len(x) - len(previous))
+            vector_initial_pose = np.hstack((previous, last))
+            initial_pose = np.inner(vector_initial_pose, x)
+            constraint_initial_pose = np.array(path[0][:3])
+
+            return initial_pose - constraint_initial_pose
+
+        def goal_pose_eq_constraint(x):
+            previous = np.array([1, 1, 1, 0, 0, 0, 0, 0])
+            last = np.zeros(len(x) - len(previous))
+            vector_goal_pose = np.hstack((previous, last))
+            goal_pose = np.inner(vector_goal_pose, x)
+            constraint_goal_pose = np.array(path[-1][:3])
+
+            return goal_pose - constraint_goal_pose
+
+        def ineq_constrains(x):
+            pass
+
         initial_path = np.array(path)[:, :-1]
         tf = path[-1][-1]
         '''
@@ -505,6 +684,8 @@ class ocp_optimization:
         con_eq_x_jit = jit(kinematic_constraints_x)
         con_eq_y_jit = jit(kinematic_constraints_y)
         con_eq_theta_jit = jit(kinematic_constraints_theta)
+        con_eq_initial_pose_jit = jit(initial_pose_eq_constraints)
+        con_eq_goal_pose_jit = jit(goal_pose_eq_constraint)
 
         # build the derivatives and jit them
         obj_grad = jit(grad(obj_jit))  # objective gradient
@@ -513,6 +694,9 @@ class ocp_optimization:
         con_eq_x_jac = jit(jacfwd(con_eq_x_jit))  # jacobian
         con_eq_y_jac = jit(jacfwd(con_eq_y_jit))  # jacobian
         con_eq_theta_jac = jit(jacfwd(con_eq_theta_jit))  # jacobian
+        con_eq_initial_pose_jac = jit(
+            jacfwd(con_eq_initial_pose_jit))  # jacobian
+        con_eq_goal_pose_jac = jit(jacfwd(con_eq_goal_pose_jit))  # jacobian
 
         con_eq_x_hess = jacrev(jacfwd(con_eq_x_jit))  # hessian
         con_eq_x_hessvp = jit(lambda x, v: con_eq_x_hess(
@@ -523,12 +707,23 @@ class ocp_optimization:
         con_eq_theta_hess = jacrev(jacfwd(con_eq_theta_jit))  # hessian
         con_eq_theta_hessvp = jit(lambda x, v: con_eq_theta_hess(
             x) * v[0])  # hessian vector-product
+        con_eq_initial_pose_hess = jacrev(
+            jacfwd(con_eq_initial_pose_jac))  # hessian
+        con_eq_initial_pose_hessvp = jit(lambda x, v: con_eq_initial_pose_hess(
+            x) * v[0])  # hessian vector-product
+        con_eq_goal_pose_hess = jacrev(jacfwd(con_eq_goal_pose_jac))  # hessian
+        con_eq_goal_pose_hessvp = jit(lambda x, v: con_eq_goal_pose_hess(
+            x) * v[0])  # hessian vector-product
 
         # constraints
         cons = [{'type': 'eq', 'fun': con_eq_x_jit, 'jac': con_eq_x_jac, 'hess': con_eq_x_hessvp},
                 {'type': 'eq', 'fun': con_eq_y_jit,
                     'jac': con_eq_y_jac, 'hess': con_eq_y_hessvp},
-                {'type': 'eq', 'fun': con_eq_theta_jit, 'jac': con_eq_theta_jac, 'hess': con_eq_theta_hessvp}, ]
+                {'type': 'eq', 'fun': con_eq_theta_jit,
+                    'jac': con_eq_theta_jac, 'hess': con_eq_theta_hessvp},
+                {'type': 'eq', 'fun': con_eq_initial_pose_jit,
+                    'jac': con_eq_initial_pose_jac, 'hess': con_eq_initial_pose_hessvp},
+                {'type': 'eq', 'fun': con_eq_goal_pose_jit, 'jac': con_eq_goal_pose_jac, 'hess': con_eq_goal_pose_hessvp}, ]
 
         # starting point
         x0 = initial_solution
@@ -540,169 +735,3 @@ class ocp_optimization:
         print('solved ocp problem')
 
         return res
-
-
-def objective(x):
-    '''
-    the objective funtion is min: t + a^2+w^2+v^2 + \sigma^2
-    input: x, y, theta, v, a, delta, w, ..., tf
-    '''
-    t = x[-1]
-    length = len(x) - 1
-    n = int(length / 7)
-    vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
-    vector_a = np.array([0, 0, 0, 0, 1, 0, 0])
-    vector_s = np.array([0, 0, 0, 0, 0, 1, 0])
-    vector_w = np.array([0, 0, 0, 0, 0, 0, 1])
-    Matrix_v = np.zeros((1, len(x)))
-    Matrix_a = np.zeros((1, len(x)))
-    Matrix_s = np.zeros((1, len(x)))
-    Matrix_w = np.zeros((1, len(x)))
-
-    for i in range(n):
-        previous = np.zeros(7 * i)
-        after = np.zeros(7 * (n-1-i))
-
-        row_a = np.hstack(
-            (previous, vector_a, after, 0))  # 0 is the tf
-        Matrix_a = np.vstack((Matrix_a, row_a))
-
-        row_v = np.hstack((previous, vector_v, after, 0))
-        Matrix_v = np.vstack((Matrix_v, row_v))
-
-        row_s = np.hstack((previous, vector_s, after, 0))
-        Matrix_s = np.vstack((Matrix_s, row_s))
-
-        row_w = np.hstack((previous, vector_w, after, 0))
-        Matrix_w = np.vstack((Matrix_w, row_w))
-
-    Matrix_a = Matrix_a[1:]
-    Matrix_v = Matrix_v[1:]
-    Matrix_s = Matrix_s[1:]
-    Matrix_w = Matrix_w[1:]
-
-    a2 = np.inner(Matrix_a, x)
-    a2_sum = np.inner(a2, a2)
-
-    v2 = np.inner(Matrix_v, x)
-    v2_sum = np.inner(v2, v2)
-
-    s2 = np.inner(Matrix_s, x)
-    s2_sum = np.inner(s2, s2)
-
-    w2 = np.inner(Matrix_w, x)
-    w2_sum = np.inner(w2, w2)
-
-    return t + a2_sum + v2_sum + s2_sum + w2_sum
-
-
-def kinematic_constraints_x(x):
-    '''
-    kinematic constraint
-    '''
-    N = int((len(x) - 1) / 7)
-    dt = x[-1] / (N - 1)  # tf / (N -1 )
-    vector_x = np.array([1, 0, 0, 0, 0, 0, 0])
-    vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
-    vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
-    Matrix_x = np.zeros((1, len(x)))
-    Matrix_v = np.zeros((1, len(x)))
-    Matrix_theta = np.zeros((1, len(x)))
-    for i in range(N):
-        previous = np.zeros(7 * i)
-        after = np.zeros(7 * (N-1-i))
-
-        row_x = np.hstack((previous, vector_x, after, 0))  # 0 means tf
-        row_v = np.hstack((previous, vector_v, after, 0))
-        row_theta = np.hstack((previous, vector_theta, after, 0))
-
-        Matrix_x = np.vstack((Matrix_x, row_x))
-        Matrix_v = np.vstack((Matrix_v, row_v))
-        Matrix_theta = np.vstack((Matrix_theta, row_theta))
-
-    Matrix_x = Matrix_x[1:]
-    Matrix_v = Matrix_v[1:]
-    Matrix_theta = Matrix_theta[1:]
-    all_x = np.inner(Matrix_x, x)
-    all_v = np.inner(Matrix_v, x)
-    all_theta = np.inner(Matrix_theta, x)
-
-    # all_x[1:] = all_x[:-1] + all_v[:-1] * dt * np.cos(all_theta[:-1])
-
-    return all_x[1:] - (all_x[:-1] + all_v[:-1] * dt * np.cos(all_theta[:-1]))
-
-
-def kinematic_constraints_y(x):
-    '''
-    kinematic constraint
-    '''
-    N = int((len(x) - 1) / 7)
-    dt = x[-1] / (N - 1)  # tf / (N -1 )
-    vector_y = np.array([0, 1, 0, 0, 0, 0, 0])
-    vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
-    vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
-    Matrix_y = np.zeros((1, len(x)))
-    Matrix_v = np.zeros((1, len(x)))
-    Matrix_theta = np.zeros((1, len(x)))
-    for i in range(N):
-        previous = np.zeros(7 * i)
-        after = np.zeros(7 * (N-1-i))
-
-        row_y = np.hstack((previous, vector_y, after, 0))
-        row_v = np.hstack((previous, vector_v, after, 0))
-        row_theta = np.hstack((previous, vector_theta, after, 0))
-
-        Matrix_y = np.vstack((Matrix_y, row_y))
-        Matrix_v = np.vstack((Matrix_v, row_v))
-        Matrix_theta = np.vstack((Matrix_theta, row_theta))
-
-    Matrix_y = Matrix_y[1:]
-    Matrix_v = Matrix_v[1:]
-    Matrix_theta = Matrix_theta[1:]
-    all_y = np.inner(Matrix_y, x)
-    all_v = np.inner(Matrix_v, x)
-    all_theta = np.inner(Matrix_theta, x)
-
-    # all_y[1:] = all_y[:-1] + all_v[:-1] * dt * np.sin(all_s[:-1])
-
-    return all_y[1:] - (all_y[:-1] + all_v[:-1] * dt * np.sin(all_theta[:-1]))
-
-
-def kinematic_constraints_theta(x):
-    '''
-    kinematic constraint
-    '''
-    N = int((len(x) - 1) / 7)
-    dt = x[-1] / (N - 1)  # tf / (N -1 )
-    vector_theta = np.array([0, 0, 1, 0, 0, 0, 0])
-    vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
-    vector_s = np.array([0, 0, 0, 0, 0, 1, 0])
-    Matrix_theta = np.zeros((1, len(x)))
-    Matrix_v = np.zeros((1, len(x)))
-    Matrix_s = np.zeros((1, len(x)))
-    for i in range(N):
-        previous = np.zeros(7 * i)
-        after = np.zeros(7 * (N-1-i))
-
-        row_theta = np.hstack((previous, vector_theta, after, 0))
-        row_v = np.hstack((previous, vector_v, after, 0))
-        row_s = np.hstack((previous, vector_s, after, 0))
-
-        Matrix_theta = np.vstack((Matrix_theta, row_theta))
-        Matrix_v = np.vstack((Matrix_v, row_v))
-        Matrix_s = np.vstack((Matrix_s, row_s))
-
-    Matrix_theta = Matrix_theta[1:]
-    Matrix_v = Matrix_v[1:]
-    Matrix_s = Matrix_s[1:]
-    all_theta = np.inner(Matrix_theta, x)
-    all_v = np.inner(Matrix_v, x)
-    all_s = np.inner(Matrix_s, x)
-
-    # all_theta[1:] = all_theta[:-1] + all_v[:-1] * dt * np.tan(all_s[:-1]) / Lw
-
-    return all_theta[1:] - (all_theta[:-1] + all_v[:-1] * dt * np.tan(all_s[:-1]) / Lw)
-
-
-def ineq_constrains(x):
-    pass

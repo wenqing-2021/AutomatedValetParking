@@ -55,6 +55,9 @@ if __name__ == '__main__':
         # optimize path
         opti_path = path_optimizer.get_result(path_i)
 
+        # compute cubic function
+        
+
         # velocity planning
         velocity_func, acc_func = velocity_planner.solve_nlp(path=opti_path)
 

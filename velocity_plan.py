@@ -41,9 +41,10 @@ class velocity_planner:
                 {"type": "ineq", "fun": lambda x: x[1]*x[2]-e},  # Aw > 0
                 {"type": "ineq",
                     "fun": lambda x: self.max_acceleration-x[1]*x[2]},  # a < max acceleration
+                # goal pose velocity is zero
                 {"type": "eq", "fun": lambda x: x[0]*x[1] - math.pi},
                 {"type": "eq", "fun": lambda x: s -
-                    x[2]/x[1]+x[2]/x[1]*math.cos(x[1]*x[0])},
+                    x[2]/x[1]+x[2]/x[1]*math.cos(x[1]*x[0])},  # distance constraints
                 )
         x0 = np.array((4.0, 0.5, 2.0))
         result = minimize(fun=fun, x0=x0, method="SLSQP", constraints=cons)
