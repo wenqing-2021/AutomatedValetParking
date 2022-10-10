@@ -1,6 +1,7 @@
 # Author: Yuansj
 # 2022/10.01
 # 问题记录：求解失败，因为内存溢出。
+# 10.10 : 换用scipy 进行求解，method为SLSQP，可以求解。不过求解的点和原始点几乎一致。
 
 '''
 This function is used to find an optimal traj for the parking. the initial solution is from path_optimazition.py.
@@ -9,6 +10,7 @@ the usage of cyipopt is https://cyipopt.readthedocs.io/en/stable/tutorial.html#p
 
 import jax.numpy as np
 from jax import jit, grad, jacfwd, jacrev
+from scipy.optimize import minimize
 from cyipopt import minimize_ipopt
 from costmap import _map, Vehicle
 import math
@@ -716,6 +718,14 @@ class ocp_optimization:
             x) * v[0])  # hessian vector-product
 
         # constraints
+        # cons = [{'type': 'eq', 'fun': con_eq_x_jit, 'jac': con_eq_x_jac, 'hess': con_eq_x_hessvp},
+        #         {'type': 'eq', 'fun': con_eq_y_jit,
+        #             'jac': con_eq_y_jac, 'hess': con_eq_y_hessvp},
+        #         {'type': 'eq', 'fun': con_eq_theta_jit,
+        #             'jac': con_eq_theta_jac, 'hess': con_eq_theta_hessvp},
+        #         {'type': 'eq', 'fun': con_eq_initial_pose_jit,
+        #             'jac': con_eq_initial_pose_jac, 'hess': con_eq_initial_pose_hessvp},
+        #         {'type': 'eq', 'fun': con_eq_goal_pose_jit, 'jac': con_eq_goal_pose_jac, 'hess': con_eq_goal_pose_hessvp}, ]
         cons = [{'type': 'eq', 'fun': con_eq_x_jit, 'jac': con_eq_x_jac, 'hess': con_eq_x_hessvp},
                 {'type': 'eq', 'fun': con_eq_y_jit,
                     'jac': con_eq_y_jac, 'hess': con_eq_y_hessvp},
@@ -729,9 +739,21 @@ class ocp_optimization:
         x0 = initial_solution
 
         # executing the solver
-        res = minimize_ipopt(obj_jit, jac=obj_grad, hess=obj_hess, x0=x0, bounds=bnds,
-                             constraints=cons, options={'disp': 5})
+        # res = minimize_ipopt(obj_jit, jac=obj_grad, hess=obj_hess, x0=x0, bounds=bnds,
+        #                      constraints=cons, options={'disp': 5})
+
+        res = minimize(fun=obj_jit, x0=x0, method='SLSQP', jac=obj_grad, hess=obj_hess,
+                       constraints=cons, bounds=bnds)
 
         print('solved ocp problem')
+        print('minimum value', res.fun)
+        x = res.x
+        optimal_tf = x[-1]
+        num_points = int((len(x) - 1) / 7)
+        optimal_traj = []
 
-        return res
+        for index in range(num_points):
+            i = index * 7
+            optimal_traj.append(x[i: i + 7])
+
+        return optimal_traj, optimal_tf

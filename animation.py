@@ -47,7 +47,7 @@ def plot_path(x,y,color='grey'):
     plt.plot(x,y,'*-',linewidth=1,color=color)
     plt.draw()
 
-def plot_final_path(path, map:_map, color='green'):
+def plot_final_path(path, map:_map, color='green', show_car=False):
     # plot cost map
     plot_obstacles(map)
     x,y=[],[]
@@ -56,8 +56,9 @@ def plot_final_path(path, map:_map, color='green'):
         x.append(path[i][0])
         y.append(path[i][1])
         plot_path(x,y,color)
-        points = v.create_polygon(path[i][0], path[i][1], path[i][2])
-        plt.plot(points[:, 0], points[:, 1], linestyle='--', linewidth = 0.4, color = color)
+        if show_car:
+            points = v.create_polygon(path[i][0], path[i][1], path[i][2])
+            plt.plot(points[:, 0], points[:, 1], linestyle='--', linewidth = 0.4, color = color)
         plt.draw()
         plt.pause(0.1)
     
