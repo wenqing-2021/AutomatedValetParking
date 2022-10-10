@@ -41,12 +41,12 @@ if __name__ == '__main__':
     velocity_planner = velocity_plan.velocity_planner(vehicle=ego_vehicle)
 
     # create path optimization planner
-    ocp_planner = ocp_optimization.ocp_optimization(
-        park_map=park_map, vehicle=ego_vehicle, config=config)
+    # ocp_planner = ocp_optimization.ocp_optimization(
+    #     park_map=park_map, vehicle=ego_vehicle, config=config)
 
     plot_opt_path = []  # store the optimization path
     plot_insert_path = []  # store the interpolation path
-    plot_ocp_path = []
+    # plot_ocp_path = []
 
     path_optimizer = path_optimazition.path_opti(park_map, ego_vehicle, config)
     insert_point = cubic_interpolation.interpolation(
@@ -63,17 +63,17 @@ if __name__ == '__main__':
             opti_path, velocity_func, acc_func)
 
         # ocp problem solve
-        ocp_traj, ocp_tf = ocp_planner.solution(path=insert_path)
+        # ocp_traj, ocp_tf = ocp_planner.solution(path=insert_path)
 
         plot_opt_path.extend(opti_path)
         plot_insert_path.extend(insert_path)
-        plot_ocp_path.extend(ocp_traj)
+        # plot_ocp_path.extend(ocp_traj)
 
     # animation
     plot_final_path(path=original_path, map=park_map, color='green')
     # plot_final_path(path=plot_opt_path, map=park_map, color='blue')
-    plot_final_path(path=plot_insert_path, map=park_map, color='red')
-    plot_final_path(path=plot_ocp_path, map=park_map, color='gray')
+    plot_final_path(path=plot_insert_path, map=park_map, color='red', show_car=True)
+    # plot_final_path(path=plot_ocp_path, map=park_map, color='gray')
     park_map.visual_cost_map()
     plt.show()
     print('solved')
