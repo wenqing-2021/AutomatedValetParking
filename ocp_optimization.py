@@ -14,6 +14,7 @@ from scipy.optimize import minimize
 from cyipopt import minimize_ipopt
 from costmap import _map, Vehicle
 import math
+import copy
 
 # wheel base
 Lw = 2.8
@@ -655,6 +656,65 @@ class ocp_optimization:
 
             return goal_pose - constraint_goal_pose
 
+        def velocity_eq_constraint(x):
+            N = int((len(x) - 1) / 7)
+            dt = x[-1] / (N - 1)  # tf / (N -1 )
+            vector_v = np.array([0, 0, 0, 1, 0, 0, 0])
+            vector_a = np.array([0, 0, 0, 0, 1, 0, 0])
+            Matrix_v = np.zeros((1, len(x)))
+            Matrix_a = np.zeros((1, len(x)))
+            for i in range(N):
+                previous = np.zeros(7 * i)
+                after = np.zeros(7 * (N-1-i))
+                row_v = np.hstack((previous, vector_v, after, 0))
+                row_a = np.hstack((previous, vector_a, after, 0))
+
+                Matrix_v = np.vstack((Matrix_v, row_v))
+                Matrix_a = np.vstack((Matrix_a, row_a))
+
+            Matrix_a = Matrix_a[1:i+1]
+            Matrix_a = np.vstack((np.zeros((1, len(x))), Matrix_a))
+            Matrix_v = Matrix_v[1:]
+            Matrix_v_ = copy.deepcopy(Matrix_v[:i])  # previous velocity
+            Matrix_v_ = np.vstack((np.zeros((1, len(x))), Matrix_v_))
+
+            v = np.inner(Matrix_v, x)
+            v_ = np.inner(Matrix_v_, x)
+            a = np.inner(Matrix_a, x)
+
+            return v-v_-a*dt
+
+        def steering_angle_eq_constraint(x):
+            N = int((len(x) - 1) / 7)
+            dt = x[-1] / (N - 1)  # tf / (N -1 )
+            vector_theta = np.array([0, 0, 0, 0, 0, 1, 0])
+            vector_omega = np.array([0, 0, 0, 0, 0, 0, 1])
+            Matrix_theta = np.zeros((1, len(x)))
+            Matrix_omega = np.zeros((1, len(x)))
+            for i in range(N):
+                previous = np.zeros(7 * i)
+                after = np.zeros(7 * (N-1-i))
+                row_v = np.hstack((previous, vector_theta, after, 0))
+                row_a = np.hstack((previous, vector_omega, after, 0))
+
+                Matrix_theta = np.vstack((Matrix_theta, row_v))
+                Matrix_omega = np.vstack((Matrix_omega, row_a))
+
+            Matrix_omega = Matrix_omega[1:i+1]
+            Matrix_omega = np.vstack((np.zeros((1, len(x))), Matrix_omega))
+            Matrix_theta = Matrix_theta[1:]
+            # previous theta, delete first theta
+            Matrix_theta_ = copy.deepcopy(Matrix_theta[:i])
+            Matrix_theta_ = np.vstack((np.zeros((1, len(x))), Matrix_theta_))
+
+            Matrix_theta = Matrix_theta[1:]
+            Matrix_theta = np.vstack((np.zeros((1, len(x))), Matrix_theta))
+            theta = np.inner(Matrix_theta, x)
+            theta_ = np.inner(Matrix_theta_, x)
+            omega = np.inner(Matrix_omega, x)
+
+            return theta-theta_-omega*dt
+
         def ineq_constrains(x):
             pass
 
@@ -683,11 +743,14 @@ class ocp_optimization:
         # solution
         # jit the functions
         obj_jit = jit(objective)
+
         con_eq_x_jit = jit(kinematic_constraints_x)
         con_eq_y_jit = jit(kinematic_constraints_y)
         con_eq_theta_jit = jit(kinematic_constraints_theta)
         con_eq_initial_pose_jit = jit(initial_pose_eq_constraints)
         con_eq_goal_pose_jit = jit(goal_pose_eq_constraint)
+        con_eq_v_jit = jit(velocity_eq_constraint)
+        con_eq_angle_jit = jit(steering_angle_eq_constraint)
 
         # build the derivatives and jit them
         obj_grad = jit(grad(obj_jit))  # objective gradient
@@ -699,6 +762,8 @@ class ocp_optimization:
         con_eq_initial_pose_jac = jit(
             jacfwd(con_eq_initial_pose_jit))  # jacobian
         con_eq_goal_pose_jac = jit(jacfwd(con_eq_goal_pose_jit))  # jacobian
+        con_eq_v_jac = jit(jacfwd(con_eq_v_jit))  # jacobian
+        con_eq_angle_jac = jit(jacfwd(con_eq_angle_jit))  # jacobian
 
         con_eq_x_hess = jacrev(jacfwd(con_eq_x_jit))  # hessian
         con_eq_x_hessvp = jit(lambda x, v: con_eq_x_hess(
@@ -715,6 +780,12 @@ class ocp_optimization:
             x) * v[0])  # hessian vector-product
         con_eq_goal_pose_hess = jacrev(jacfwd(con_eq_goal_pose_jac))  # hessian
         con_eq_goal_pose_hessvp = jit(lambda x, v: con_eq_goal_pose_hess(
+            x) * v[0])  # hessian vector-product
+        con_eq_v_hess = jacrev(jacfwd(con_eq_v_jac))  # hessian
+        con_eq_v_hessvp = jit(lambda x, v: con_eq_v_hess(
+            x) * v[0])  # hessian vector-product
+        con_eq_angle_hess = jacrev(jacfwd(con_eq_angle_jac))  # hessian
+        con_eq_angle_hessvp = jit(lambda x, v: con_eq_angle_hess(
             x) * v[0])  # hessian vector-product
 
         # constraints
@@ -733,7 +804,11 @@ class ocp_optimization:
                     'jac': con_eq_theta_jac, 'hess': con_eq_theta_hessvp},
                 {'type': 'eq', 'fun': con_eq_initial_pose_jit,
                     'jac': con_eq_initial_pose_jac, 'hess': con_eq_initial_pose_hessvp},
-                {'type': 'eq', 'fun': con_eq_goal_pose_jit, 'jac': con_eq_goal_pose_jac, 'hess': con_eq_goal_pose_hessvp}, ]
+                {'type': 'eq', 'fun': con_eq_goal_pose_jit,
+                    'jac': con_eq_goal_pose_jac, 'hess': con_eq_goal_pose_hessvp},
+                {'type': 'eq', 'fun': con_eq_v_jit,
+                    'jac': con_eq_v_jac, 'hess': con_eq_v_hessvp},
+                {'type': 'eq', 'fun': con_eq_angle_jit, 'jac': con_eq_angle_jac, 'hess': con_eq_angle_hessvp}, ]
 
         # starting point
         x0 = initial_solution

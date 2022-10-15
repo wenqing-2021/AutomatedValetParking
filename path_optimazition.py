@@ -165,8 +165,10 @@ class path_opti:
         for i in range(int(len(result_path)/2)):
             # update theta
             if i == 0:
+                # initial theta
                 theta = self.original_path[0][2]
             elif i == int(len(result_path)/2) - 1:
+                # final pose theta
                 theta = self.original_path[-1][2]
             else:
                 vector_a = np.array(
