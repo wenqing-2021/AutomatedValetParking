@@ -1,6 +1,6 @@
 # coding:utf-8
 # Author: Yuansj
-# Last update: 2022/08/25
+# Last update: 2022/10/20
 
 from path_planner import path_planner
 from animation.animation import *
@@ -15,7 +15,6 @@ import os
 import copy
 
 import argparse
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='hybridAstar')
@@ -36,13 +35,17 @@ if __name__ == '__main__':
     # create vehicle
     ego_vehicle = costmap.Vehicle()
 
-    # path planning
     # create path planner
     planner = path_planner.path_planner(config=config,
                                         map=park_map,
                                         vehicle=ego_vehicle)
 
-    original_path, path_info, split_path = planner.path_planning()
+    # create path optimizer
+    path_optimizer = path_optimazition.path_opti(park_map, ego_vehicle, config)
+
+    # create path interpolation
+    insert_point = cubic_interpolation.interpolation(
+        config=config, map=park_map, vehicle=ego_vehicle)
 
     # create velocity planner
     velocity_planner = velocity_plan.velocity_planner(vehicle=ego_vehicle)
@@ -51,13 +54,13 @@ if __name__ == '__main__':
     # ocp_planner = ocp_optimization.ocp_optimization(
     #     park_map=park_map, vehicle=ego_vehicle, config=config)
 
+    # rapare memory to store path
     plot_opt_path = []  # store the optimization path
     plot_insert_path = []  # store the interpolation path
     # plot_ocp_path = []  # store ocp path
 
-    path_optimizer = path_optimazition.path_opti(park_map, ego_vehicle, config)
-    insert_point = cubic_interpolation.interpolation(
-        config=config, map=park_map, vehicle=ego_vehicle)
+    # path planning
+    original_path, path_info, split_path = planner.path_planning()
     for path_i in split_path:
         # optimize path
         opti_path = path_optimizer.get_result(path_i)

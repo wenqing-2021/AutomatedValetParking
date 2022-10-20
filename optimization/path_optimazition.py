@@ -1,11 +1,11 @@
 # coding:utf-8
 # Author: Yuansj
-# Last update:2022/06/26
+# Last update:2022/10/20
 
+from typing import List
 import numpy as np
 import math
 from cvxopt import matrix, solvers
-from sympy import re
 from map.costmap import _map, Vehicle
 
 
@@ -148,7 +148,7 @@ class path_opti:
 
         return slack_P_matrix, slack_Q_matrix, slack_A_matrix, slack_B_matrix, slack_G_matrix, slack_H_matrix
 
-    def get_result(self, path):
+    def get_result(self, path) -> List[List]:
         P, Q, A, B, G, H = self.formate_matrix(path)
         P = matrix(P)
         Q = matrix(Q)
@@ -191,17 +191,16 @@ class path_opti:
         to the left edge.
         [E;-E] X <= [H_max;-H_min]
         '''
+        v = self.vehicle
 
         # get near obstacles and vehicle
+
         def get_near_obstacles(node_x, node_y, theta, map: _map, config):
             '''
             this function is only used for distance check method
             return the obstacles x and y, vehicle boundary
             Note: vehicle boundary is expanded
             '''
-
-            # create vehicle boundary
-            v = Vehicle()
 
             # create_polygon
             vehicle_boundary = v.create_anticlockpoint(
@@ -248,7 +247,6 @@ class path_opti:
             k = (point_2[1] - point_1[1]) / (point_2[0] - point_1[0])
             # b = y_1 - k * x_1
             b = point_1[1] - k * point_1[0]
-            b_2 = point_2[1] - k * point_2[0]
             return k, b
 
         def get_area_boundary(point1, point2):
