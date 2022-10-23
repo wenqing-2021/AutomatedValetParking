@@ -1,6 +1,14 @@
-# coding:utf-8
-# Author: Yuansj
-# Last update: 2022/10/20
+'''
+Author: wenqing-hnu
+Date: 2022-10
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10
+FilePath: /TPCAP_demo_Python-main/main.py
+Description: main func for trajectory planning
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
 
 from path_planner import path_planner
 from animation.animation import *
@@ -44,7 +52,7 @@ if __name__ == '__main__':
     path_optimizer = path_optimazition.path_opti(park_map, ego_vehicle, config)
 
     # create path interpolation
-    insert_point = cubic_interpolation.interpolation(
+    interplotor = cubic_interpolation.interpolation(
         config=config, map=park_map, vehicle=ego_vehicle)
 
     # create velocity planner

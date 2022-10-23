@@ -1,5 +1,14 @@
-# Yuansj
-# Last update: 06/13
+'''
+Author: wenqing-hnu
+Date: 2022-10
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10
+FilePath: /TPCAP_demo_Python-main/animation/animation.py
+Description: main func for trajectory planning
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
 import numpy as np
 import matplotlib.pyplot as plt
 

@@ -4,6 +4,7 @@
 # update: 07/09 因为没有进行坐标变换进行插值，导致某些曲线的导数无穷大，
 
 import math
+from typing import List
 import numpy as np
 from scipy.linalg import solve
 from scipy import spatial
@@ -144,63 +145,13 @@ class interpolation:
         # plot_final_path(path=insert_path, map=self.map, color='blue')
         return insert_path
 
-    # def solve_cubic_spline(self, start, end):
-    #     '''
-    #     :param start: start node
-    #     :param end: end node
-    #     :return: target cubic function,include [a,b,c,d]
-    #     '''
-    #     rotation_matrix, new_end = self.rotation_transfrom(
-    #         start=start, end=end)
-    #     x0, y0, theta0 = 0, 0, 0
-    #     x1, y1, theta1 = new_end[0], new_end[1], new_end[2]
-    #     A = np.array([
-    #         [x0**3, x0**2, x0, 1],
-    #         [x1**3, x1**2, x1, 1],
-    #         [3*x0**2, 2*x0, 1, 0],
-    #         [3*x1**2, 2*x1, 1, 0]
-    #     ])
-    #     b = np.array([y0, y1, math.tan(theta0), math.tan(theta1)])
-    #     result = solve(A, b)
+    def cubic_fitting(self,
+                      path: List[List] = None):
 
-    #     def cubic_func(x):
-    #         a = result[0]
-    #         b = result[1]
-    #         c = result[2]
-    #         d = result[3]
-    #         y = a*x**3+b*x**2+c*x+d
-    #         k = 3*a*x**2 + 2*b*x + c
-    #         theta_angle = math.atan(k)
+        start_point = path[0]
+        for i in range(1, len(path)):
+            end_point = path[i]
+            cubic_func, rotation_matrix, new_end = spine.cubic_spline(
+                start=start_point, end=end_point)
 
-    #         return y, theta_angle
-
-    #     return cubic_func, rotation_matrix, new_end
-
-    # def rotation_transfrom(self, start, end) -> None:
-    #     theta = start[2]
-    #     R = np.array([[np.cos(theta), np.sin(theta)],
-    #                  [-np.sin(theta), np.cos(theta)]])
-    #     trans_end_x_y = np.dot(R, np.array(
-    #         [[end[0] - start[0]], [end[1] - start[1]]]))
-    #     new_end = [trans_end_x_y[0, 0], trans_end_x_y[1, 0]]
-    #     new_end.append(end[2] - theta)
-
-    #     return R, new_end
-
-    # def inverse_trans(self,
-    #                   trans_path: list = None,
-    #                   rotation_matrix: np.array = None,
-    #                   start: list = None) -> list:
-
-    #     start_array = np.ones((len(trans_path), 2))
-    #     start_array[:, 0] = start_array[:, 0] * start[0]
-    #     start_array[:, 1] = start_array[:, 1] * start[1]
-    #     trans_path = np.array(trans_path)
-    #     trans_path_position = trans_path[:, :2]
-    #     inversed_path_position = (rotation_matrix.transpose().dot(trans_path_position.transpose())).transpose() + \
-    #         start_array
-    #     trans_path[:, :2] = inversed_path_position
-    #     trans_path[:, 2:3] += start[2]
-    #     inversed_path = trans_path.tolist()
-
-    #     return inversed_path
+            start_point = end_point

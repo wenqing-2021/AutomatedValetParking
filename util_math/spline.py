@@ -1,7 +1,20 @@
+'''
+Author: wenqing-hnu
+Date: 2022-10
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10
+FilePath: /TPCAP_demo_Python-main/util_math/spline.py
+Description: main func for trajectory planning
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
+
 from util_math.coordinate_transform import coordinate_transform
 import numpy as np
 import math
 from scipy.linalg import solve
+from scipy import integrate
 
 
 class spine:
@@ -11,9 +24,10 @@ class spine:
     @staticmethod
     def cubic_spline(start, end):
         '''
-        :param start: start node
-        :param end: end node
-        :return: target cubic function,include [a,b,c,d]
+        description: 
+        param {*} start
+        param {*} end
+        return {*} target cubic function,include [a,b,c,d]
         '''
         rotation_matrix, new_end = coordinate_transform.twodim_transform(
             start=start, end=end)
@@ -35,8 +49,29 @@ class spine:
             d = result[3]
             y = a*x**3+b*x**2+c*x+d
             k = 3*a*x**2 + 2*b*x + c
-            theta_angle = math.atan(k)
+            slope_angle = math.atan(k)
 
-            return y, theta_angle
+            return y, slope_angle
 
         return cubic_func, rotation_matrix, new_end
+
+    @staticmethod
+    def Simpson_integral(cubic_func: function,
+                         start_point: list,
+                         end_point: list) -> np.float64:
+        '''
+        description: use simpson_integral to get the arc length of the optimized path
+        param: {function}: cubic function
+        param: {list} : the start point and the end point
+        return {*} the arc lenth
+        '''
+        y = []
+        x_points = np.linspace(start=start_point[0], stop=end_point[0], num=50)
+        for x in x_points:
+            y_i, _ = cubic_func(x)
+            y.append(y_i)
+
+        y = np.array(y)
+        arc_length = integrate.simpson(y=y, x=x_points)
+
+        return arc_length

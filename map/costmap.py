@@ -1,7 +1,16 @@
+'''
+Author: wenqing-hnu
+Date: 2022-10
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10
+FilePath: /TPCAP_demo_Python-main/map/costmap.py
+Description: build the costmap for the problem
 
-# coding:utf-8
-# Author: Yuansj
-# 2022/06/04
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+
+Note: the class Vehicle and Case are provided by https://github.com/libai1943/TPCAP_demo_Python/blob/main/RunMe.py
+'''
+
 
 import string
 import numpy as np
