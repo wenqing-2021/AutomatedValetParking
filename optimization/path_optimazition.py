@@ -7,6 +7,7 @@ import numpy as np
 import math
 from cvxopt import matrix, solvers
 from map.costmap import _map, Vehicle
+import scipy.spatial as spatial
 
 
 class path_opti:
@@ -162,6 +163,18 @@ class path_opti:
         points_n = len(self.original_path)
         result_path = result_path[:2*points_n]
         opti_path = []
+
+        # check this short path is forward or not
+        theta_forward_1 = self.original_path[0][2] > - \
+            math.pi/2 and self.original_path[0][2] < math.pi/2
+        theta_forward_2 = (self.original_path[0][2] > math.pi/2
+                           and self.original_path[0][2] < math.pi) or \
+            (self.original_path[0][2] > -math.pi and
+             self.original_path[0][2] < -math.pi/2)
+        forward = True if (self.original_path[0][0] < self.original_path[1][0] and theta_forward_1) or \
+            (self.original_path[0][0] > self.original_path[1][0] and theta_forward_2) else False
+
+        # update theta
         for i in range(int(len(result_path)/2)):
             # update theta
             if i == 0:
@@ -171,14 +184,30 @@ class path_opti:
                 # final pose theta
                 theta = self.original_path[-1][2]
             else:
-                vector_a = np.array(
-                    [result_path[2*(i+1)] - result_path[2*(i-1)],
-                     result_path[2*(i+1)+1] - result_path[2*(i-1)+1]])
+                if forward:
+                    vector_i = (result_path[2*(i+1)] - result_path[2*(i-1)],
+                                result_path[2*(i+1)+1] - result_path[2*(i-1)+1])
+                else:
+                    vector_i = (result_path[2*(i-1)] - result_path[2*(i+1)],
+                                result_path[2*(i-1)+1] - result_path[2*(i+1)+1])
 
-                theta = np.arctan2(vector_a[1], vector_a[0])
+                vector_x = (1, 0)
+                # get cosine value, if the angle is biger than pi/2 the value is negative
+                cosine = 1 - spatial.distance.cosine(vector_i, vector_x)
+                tan_value = vector_i[1] / vector_i[0]
+                # return is [-pi/2, pi/2]
+                theta = math.atan(vector_i[1] / vector_i[0])
+
+                if cosine < 0:
+                    if tan_value > 0:
+                        theta -= math.pi
+                    else:
+                        theta += math.pi
+
             point = [result_path[2*i], result_path[2*i+1],
                      theta]
             opti_path.append(point)
+
         return opti_path
 
     def compute_collision_H(self):

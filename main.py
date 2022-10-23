@@ -70,24 +70,26 @@ if __name__ == '__main__':
         # get the total curve length
 
         # velocity planning
-        velocity_func, acc_func = velocity_planner.solve_nlp(path=opti_path)
+        # velocity_func, acc_func = velocity_planner.solve_nlp(path=opti_path)
 
         # insert points
-        insert_path = insert_point.get_cubic_interpolation(
-            opti_path, velocity_func, acc_func)
+        # insert_path = insert_point.get_cubic_interpolation(
+        #     opti_path, velocity_func, acc_func)
 
         # ocp problem solve
         # ocp_traj, ocp_tf = ocp_planner.solution(path=insert_path)
 
         plot_opt_path.extend(opti_path)
-        plot_insert_path.extend(insert_path)
+        # plot_insert_path.extend(insert_path)
         # plot_ocp_path.extend(ocp_traj)
 
     # animation
-    plot_final_path(path=original_path, map=park_map, color='green')
-    # plot_final_path(path=plot_opt_path, map=park_map, color='blue')
-    plot_final_path(path=plot_insert_path, map=park_map,
-                    color='red', show_car=True)
+    plot_final_path(path=original_path, map=park_map,
+                    color='green', show_car=True)
+    plot_final_path(path=plot_opt_path, map=park_map,
+                    color='blue', show_car=True)
+    # plot_final_path(path=plot_insert_path, map=park_map,
+    #                 color='red', show_car=True)
     # plot_final_path(path=plot_ocp_path, map=park_map, color='gray')
     park_map.visual_cost_map()
     plt.show()

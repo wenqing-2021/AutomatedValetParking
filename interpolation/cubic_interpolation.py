@@ -176,37 +176,6 @@ class interpolation:
 
     #     return cubic_func, rotation_matrix, new_end
 
-    def update_theta(self, forward, path) -> None:
-        '''
-        this function is used for compute the theta angle of each
-        waypoint. For example, if we want to compute the theta angle of
-        point_{i}, we define it as the angle between x axis and vector,
-        which start from point_{i-1} to point_{i+1}.
-        '''
-        for i in range(1, len(path)-1):
-            # compute vector
-            if forward:
-                vector_i = (path[i+1][0] - path[i-1][0],
-                            path[i+1][1] - path[i-1][1])
-            else:
-                vector_i = (path[i-1][0] - path[i+1][0],
-                            path[i-1][1] - path[i+1][1])
-            vector_x = (1, 0)
-
-            cosine = 1 - spatial.distance.cosine(vector_i, vector_x)
-            tan_value = vector_i[1] / vector_i[0]
-            # return is [-pi/2, pi/2]
-            theta_i = math.atan(vector_i[1] / vector_i[0])
-
-            if cosine < 0:
-                if tan_value > 0:
-                    theta_i -= math.pi
-                else:
-                    theta_i += math.pi
-
-            # update theta
-            path[i][2] = theta_i
-
     # def rotation_transfrom(self, start, end) -> None:
     #     theta = start[2]
     #     R = np.array([[np.cos(theta), np.sin(theta)],
