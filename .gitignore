@@ -1,0 +1,6 @@
+## ignore this folder or files ##
+/__pycache__
+/.vscode
+/.VSCodeCounter
+# python
+*.py[cod]
