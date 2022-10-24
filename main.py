@@ -74,6 +74,7 @@ if __name__ == '__main__':
         opti_path = path_optimizer.get_result(path_i)
 
         # cubic fitting
+        path_arc_length, path_i_info = interplotor.cubic_fitting(path_i)
 
         # get the total curve length
 

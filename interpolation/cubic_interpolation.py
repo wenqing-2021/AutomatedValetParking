@@ -4,7 +4,7 @@
 # update: 07/09 因为没有进行坐标变换进行插值，导致某些曲线的导数无穷大，
 
 import math
-from typing import List
+from typing import List, Dict, Tuple
 import numpy as np
 from scipy.linalg import solve
 from scipy import spatial
@@ -146,12 +146,31 @@ class interpolation:
         return insert_path
 
     def cubic_fitting(self,
-                      path: List[List] = None):
-
+                      path: List[List] = None) -> Tuple[np.float64, Dict]:
+        cubic_func_list = []
+        rotation_matrix_list = []
+        arc_lenth_list = []
+        new_end_list = []
         start_point = path[0]
+        arc_lenth = 0
         for i in range(1, len(path)):
             end_point = path[i]
             cubic_func, rotation_matrix, new_end = spine.cubic_spline(
                 start=start_point, end=end_point)
+            arc_lenth_i = spine.Simpson_integral(cubic_func, [0, 0], new_end)
+
+            cubic_func_list.append(cubic_func)
+            rotation_matrix_list.append(rotation_matrix)
+            new_end_list.append(new_end)
+            arc_lenth_list.append(arc_lenth_i)
+
+            arc_lenth += arc_lenth_i
 
             start_point = end_point
+
+        path_i_info = {'cubic_list': cubic_func_list,
+                       'rotation_matrix_list': rotation_matrix_list,
+                       'arc_len_list': arc_lenth_list,
+                       'new_end_list': new_end_list}
+
+        return arc_lenth, path_i_info
