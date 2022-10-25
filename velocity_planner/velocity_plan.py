@@ -1,8 +1,16 @@
-# coding:utf-8
-# Author: Yuansj
-# Last update:2022/07/04
+'''
+Author: wenqing-hnu
+Date: 2022-10-20 00:01:21
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-25
+FilePath: /TPCAP_demo_Python-main/velocity_planner/velocity_plan.py
+Description: description for this file
 
-from typing import List
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
+from abc import ABC, abstractmethod
+from typing import Dict, List
 from map.costmap import Vehicle
 import numpy as np
 from scipy.optimize import minimize
@@ -18,39 +26,85 @@ class velocity_type(Enum):
     constant_func = 2
     double_s_func = 3
 
+
+class velocity_func_base(ABC):
+    def __init__(self) -> None:
+        super().__init__()
+        pass
+
+    @abstractmethod
+    def obj_func(x):
+        pass
+
+    @abstractmethod
+    def constraint():
+        pass
+
+    @abstractmethod
+    def v_func():
+        pass
+
+
+class sin_func(velocity_func_base):
+    '''
+    description: 
+    this function is :
+        if 0 < t < pi / (2W) : v(t) = Asin(Wt)
+        if pi / (2W) < t < t1 + pi / (2W): v(t) = A
+        if t1 + pi / (2W) < t < t1 + pi / W: v(t) = Asin(W(t-t1))
+    return {*} obj_func, constraint, x0
+    '''
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.t1 = 0
+        self.a = 0
+        self.w = 0
+
+    def initial_param(self, t1, a, w):
+        self.t1 = t1
+        self.a = a
+        self.w = w
+        self.t0 = np.pi / (2 * w)
+        self.tf = t1 + np.pi / w
+
+    def v_t(self, t):
+        assert self.t1 != 0
+        if t >= 0 and t < self.t0:
+            v = self.a * np.sin(self.w * t)
+        elif t >= self.t0 and t < (self.t0 + self.t1):
+            v = self.a
+        elif t >= (self.t0 + self.t1) and t < self.tf:
+            v = self.a * np.sin(self.w * (t-self.t1))
+
+        return v
+
     @staticmethod
-    def sin_func(max_v, max_a, arc_length):
+    def obj_func(x):
         '''
-        description: 
-        this function is :
-            if 0 < t < pi / (2W) : v(t) = Asin(Wt)
-            if pi / (2W) < t < t1 + pi / (2W): v(t) = A
-            if t1 + pi / (2W) < t < t1 + pi / W: v(t) = Asin(W(t-t1))
-        return {*} obj_func, constraint, x0
+        description: the objective function
+        param {*} x is a vecor: [t1,A,W]
+        return {*} obj_func
         '''
 
-        def obj_func(x):
-            '''
-            description: the objective function
-            param {*} x is a vecor: [t1,A,W]
-            return {*} obj_func
-            '''
+        return x[0] + np.pi / x[2]
 
-            return x[0] + np.pi / x[2]
+    @staticmethod
+    def constraint(max_v, max_a, arc_length) -> Dict:
+        cons = ({"type": "ineq", "fun": lambda x: x[0] - e},  # t1 > 0
+                {"type": "ineq", "fun": lambda x: x[1] - e},  # A > 0
+                {"type": "ineq", "fun": lambda x: x[2] - e},  # W > 0
+                # v < max velocity
+                {"type": "ineq", "fun": lambda x: max_v - x[1]},
+                {"type": "ineq", "fun": lambda x: x[1]*x[2]-e},  # Aw > 0
+                {"type": "ineq",
+                    "fun": lambda x: max_a-x[1]*x[2]},  # a < max acceleration
+                # goal pose velocity is zero,
+                {"type": "eq", "fun": lambda x: arc_length -
+                    x[0]*x[1]+2*x[1]/x[2]},  # distance constraints
+                )
 
-        def constraint(max_v, max_a, arc_length):
-            cons = ({"type": "ineq", "fun": lambda x: x[0] - e},  # t1 > 0
-                    {"type": "ineq", "fun": lambda x: x[1] - e},  # A > 0
-                    {"type": "ineq", "fun": lambda x: x[2] - e},  # W > 0
-                    # v < max velocity
-                    {"type": "ineq", "fun": lambda x: max_v - x[1]},
-                    {"type": "ineq", "fun": lambda x: x[1]*x[2]-e},  # Aw > 0
-                    {"type": "ineq",
-                        "fun": lambda x: max_a-x[1]*x[2]},  # a < max acceleration
-                    # goal pose velocity is zero,
-                    {"type": "eq", "fun": lambda x: arc_length -
-                        x[0]*x[1]+2*x[1]/x[2]},  # distance constraints
-                    )
+        return cons
 
 
 class velocity_planner:
