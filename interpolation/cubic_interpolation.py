@@ -1,7 +1,14 @@
-# coding:utf-8
-# Author: Yuansj
-# Last update:2022/07/05
-# update: 07/09 因为没有进行坐标变换进行插值，导致某些曲线的导数无穷大，
+'''
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-26
+FilePath: /TPCAP_demo_Python-main/interpolation/cubic_interpolation.py
+Description: interpolation more points on the curve
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
 
 import math
 from typing import List, Dict, Tuple
@@ -25,33 +32,21 @@ class interpolation:
                  map,
                  config: dict) -> None:
         self.map = map
-        self.path = None
-        self.insert_dt = config["velocity_plan_dt"]
+        self.insert_ds = config["velocity_plan_ds"]
         self.vehicle = vehicle
 
-    def get_cubic_interpolation(self,
-                                path: list,
-                                velocity_func,
-                                acc_func) -> list:
+    def cubic_interpolation(self,
+                            path: list,
+                            v_a_func,
+                            forward: bool = None) -> list:
         '''
-        insert more points, and compute the initial solution
+        description: input is the path and the velocity & acceleration function
+        return {*} the path 
         '''
-        self.path = path
-        # check this short path is forward or not
-        theta_forward_1 = self.path[0][2] > - \
-            math.pi/2 and self.path[0][2] < math.pi/2
-        theta_forward_2 = (self.path[0][2] > math.pi/2 and self.path[0][2] < math.pi) or \
-                          (self.path[0][2] > -
-                           math.pi and self.path[0][2] < -math.pi/2)
-        forward = True if (self.path[0][0] < self.path[1][0] and theta_forward_1) or \
-                          (self.path[0][0] > self.path[1][0] and theta_forward_2) else False
 
         # update the theta of waypoints
-        self.update_theta(forward)
         t = 0
         insert_path = []
-        # assume initial velocity
-        v = velocity_func(t+self.insert_dt)
 
         # insert point between each two waypoints
         for i in range(len(self.path)-1):
@@ -147,6 +142,11 @@ class interpolation:
 
     def cubic_fitting(self,
                       path: List[List] = None) -> Tuple[np.float64, Dict]:
+        '''
+        description: the path is the splited path
+        return {*} the arc length of this period path and the path info, 
+        including the rotation matrix and the cubic function
+        '''
         cubic_func_list = []
         rotation_matrix_list = []
         arc_lenth_list = []

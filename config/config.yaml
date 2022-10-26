@@ -21,6 +21,6 @@
   offset_cost: 0.8
   slack_cost: 1
 
-  # velocity plan dt
-  velocity_plan_dt: 0.05 # s
+  # velocity plan ds
+  velocity_plan_ds: 0.05 # m
 

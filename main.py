@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10
+LastEditTime: 2022-10-26
 FilePath: /TPCAP_demo_Python-main/main.py
 Description: main func for trajectory planning
 
@@ -56,7 +56,8 @@ if __name__ == '__main__':
         config=config, map=park_map, vehicle=ego_vehicle)
 
     # create velocity planner
-    velocity_planner = velocity_plan.velocity_planner(vehicle=ego_vehicle)
+    velocity_planner = velocity_plan.velocity_planner(vehicle=ego_vehicle,
+                                                      velocity_func_type='sin_func')
 
     # create path optimization planner
     # ocp_planner = ocp_optimization.ocp_optimization(
@@ -71,19 +72,18 @@ if __name__ == '__main__':
     original_path, path_info, split_path = planner.path_planning()
     for path_i in split_path:
         # optimize path
-        opti_path = path_optimizer.get_result(path_i)
+        opti_path, forward = path_optimizer.get_result(path_i)
 
         # cubic fitting
         path_arc_length, path_i_info = interplotor.cubic_fitting(path_i)
 
-        # get the total curve length
-
         # velocity planning
-        # velocity_func, acc_func = velocity_planner.solve_nlp(path=opti_path)
+        v_acc_func, terminiate_time = velocity_planner.solve_nlp(
+            arc_length=path_arc_length)
 
         # insert points
-        # insert_path = insert_point.get_cubic_interpolation(
-        #     opti_path, velocity_func, acc_func)
+        insert_path = interplotor.cubic_interpolation(
+            opti_path, v_acc_func, forward)
 
         # ocp problem solve
         # ocp_traj, ocp_tf = ocp_planner.solution(path=insert_path)

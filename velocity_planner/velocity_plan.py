@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20 00:01:21
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-25
+LastEditTime: 2022-10-26
 FilePath: /TPCAP_demo_Python-main/velocity_planner/velocity_plan.py
 Description: description for this file
 
@@ -10,11 +10,10 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 '''
 
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from map.costmap import Vehicle
 import numpy as np
 from scipy.optimize import minimize
-import math
 from enum import Enum, unique
 
 e = 1e-10
@@ -41,7 +40,11 @@ class velocity_func_base(ABC):
         pass
 
     @abstractmethod
-    def v_func():
+    def v_a_func():
+        '''
+        description: build the velocity and acceleration function
+        return {*} the velocity and the acceleration
+        '''
         pass
 
 
@@ -68,18 +71,21 @@ class sin_func(velocity_func_base):
         self.t0 = np.pi / (2 * w)
         self.tf = t1 + np.pi / w
 
-    def v_t(self, t):
-        assert self.t1 != 0
+    def v_a_func(self, t):
+        assert self.t1 != 0, 't1 should not be zero'
+
         if t >= 0 and t < self.t0:
             v = self.a * np.sin(self.w * t)
+            acc = self.a * self.w * np.cos(self.w * t)
         elif t >= self.t0 and t < (self.t0 + self.t1):
             v = self.a
+            acc = 0
         elif t >= (self.t0 + self.t1) and t < self.tf:
             v = self.a * np.sin(self.w * (t-self.t1))
+            acc = self.a * self.w * np.cos(self.w * t)
 
-        return v
+        return v, acc
 
-    @staticmethod
     def obj_func(x):
         '''
         description: the objective function
@@ -89,8 +95,15 @@ class sin_func(velocity_func_base):
 
         return x[0] + np.pi / x[2]
 
-    @staticmethod
-    def constraint(max_v, max_a, arc_length) -> Dict:
+    def get_func(self):
+        '''
+        description: get the objective function
+        param {*} self
+        return {*} the obj_func
+        '''
+        return self.obj_func
+
+    def constraint(self, max_v, max_a, arc_length) -> Dict:
         cons = ({"type": "ineq", "fun": lambda x: x[0] - e},  # t1 > 0
                 {"type": "ineq", "fun": lambda x: x[1] - e},  # A > 0
                 {"type": "ineq", "fun": lambda x: x[2] - e},  # W > 0
@@ -109,66 +122,50 @@ class sin_func(velocity_func_base):
 
 class velocity_planner:
     def __init__(self,
-                 vehicle: Vehicle):
+                 vehicle: Vehicle,
+                 velocity_func_type: str = 'sin_func'):
+        '''
+        description: the velocity function type is sin func
+        return {*} None
+        '''
         self.vehicle = vehicle
         self.max_acceleration = vehicle.max_acc
         self.max_v = vehicle.max_v
         self.plan_result = dict()
-        self.func_type = velocity_type()
+        if velocity_func_type == velocity_type.sin_func.name:
+            self.v_func = sin_func()
+        else:
+            raise Exception("the velocity function type is not defined")
 
-    # use v(t) = Asin(wt) to plan the velocity, a(t) = Aw cos(wt)
     def solve_nlp(self,
-                  path: List[List] = None,
                   arc_length: np.float64 = None):
-        s = arc_length
+        '''
+        description: solve a nlp problem to find the minimum travel time 
+        and the optimal velocity function
+        return {*} the velocity function and the terminate time
+        '''
 
         # def fun(x): return (x[0] + (x[1]*x[2])**2/2 *
         #                     x[0] + x[1]/4*x[2]**2*math.sin(2*x[1]*x[0]))
 
-        def fun(x): return (x[0])
-        cons = ({"type": "ineq", "fun": lambda x: x[2] - e},  # t0 > 0
-                {"type": "ineq", "fun": lambda x: x[0] - e},  # A > 0
-                {"type": "ineq", "fun": lambda x: x[1] - e},  # W > 0
-                # v < max velocity
-                {"type": "ineq", "fun": lambda x: self.max_v-x[2]},
-                {"type": "ineq", "fun": lambda x: x[1]*x[2]-e},  # Aw > 0
-                {"type": "ineq",
-                    "fun": lambda x: self.max_acceleration-x[1]*x[2]},  # a < max acceleration
-                # goal pose velocity is zero
-                {"type": "eq", "fun": lambda x: x[0]*x[1] - math.pi},
-                {"type": "eq", "fun": lambda x: s -
-                    x[2]/x[1]+x[2]/x[1]*math.cos(x[1]*x[0])},  # distance constraints
-                )
-        x0 = np.array((4.0, 0.5, 2.0))
-        result = minimize(fun=fun, x0=x0, method="SLSQP", constraints=cons)
+        x0 = np.array((2.0, 0.5, 2.0))
+
+        obj_fun = self.v_func.get_func()
+        cons = self.v_func.constraint(max_a=self.max_acceleration,
+                                      max_v=self.max_v,
+                                      arc_length=arc_length)
+
+        result = minimize(fun=obj_fun, x0=x0, method="SLSQP", constraints=cons)
         optimal_solve = result.x
-        A = optimal_solve[2]
-        W = optimal_solve[1]
-        terminate_t = optimal_solve[0]
+        t1 = optimal_solve[0]
+        a = optimal_solve[1]
+        w = optimal_solve[2]
+
+        terminate_t = t1 + np.pi / w
 
         print('terminate_time:', terminate_t)
 
-        self.plan_result = {"A": A, "W": W, "t1": terminate_t}
+        self.plan_result = {"A": a, "W": w, "t1": t1}
+        self.v_func.initial_param(t1, a, w)
 
-        def velocity_func(t):
-            '''
-            :param dt: input the moment
-            :return: velocity
-            '''
-            return A * math.sin(W * t)
-
-        def acc_func(t):
-            '''
-            :param dt: input the moment
-            :return: acceleration function
-            '''
-            return A*W*math.cos(W*t)
-
-        return velocity_func, acc_func
-
-    def velocity_func(self,
-                      func_type: int = 1):
-        for _type in self.func_type:
-            if func_type == _type.value:
-                print('chose_velocity_func is:', _type.name)
-                break
+        return self.v_func.v_a_func, terminate_t

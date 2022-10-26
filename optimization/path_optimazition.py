@@ -208,7 +208,7 @@ class path_opti:
                      theta]
             opti_path.append(point)
 
-        return opti_path
+        return opti_path, forward
 
     def compute_collision_H(self):
         '''
