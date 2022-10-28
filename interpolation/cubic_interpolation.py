@@ -2,11 +2,11 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-26
+LastEditTime: 2022-10-28
 FilePath: /TPCAP_demo_Python-main/interpolation/cubic_interpolation.py
 Description: interpolation more points on the curve
 
-Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 '''
 
 
@@ -32,88 +32,79 @@ class interpolation:
                  map,
                  config: dict) -> None:
         self.map = map
-        self.insert_ds = config["velocity_plan_ds"]
+        self.insert_dt = config["velocity_plan_dt"]
         self.vehicle = vehicle
 
     def cubic_interpolation(self,
                             path: list,
+                            path_i_info: dict,
                             v_a_func,
                             forward: bool = None) -> list:
         '''
-        description: input is the path and the velocity & acceleration function
-        return {*} the path 
+        description:
+        path: the interporlation path
+        path_i_info: dict including the cubic function_list and the rotation matrix_list
+        v_a_func: the velocity function and the acceleration function
+        return {*} the interpolation function
         '''
 
         # update the theta of waypoints
         t = 0
         insert_path = []
+        cubic_func_list = path_i_info['cubic_list']
+        rotation_matrix_list = path_i_info['rotation_matrix_list']
+        new_end_list = path_i_info['new_end_list']
 
-        # insert point between each two waypoints
-        for i in range(len(self.path)-1):
-            start, end = self.path[i], self.path[i+1]
-            cubic_func, rotation_matrix, new_end = spine.cubic_spline(
-                start, end)
+        _, a = v_a_func(0)
+        if forward:
+            direction = 1
+        else:
+            direction = -1
 
-            if i > 0:
-                v = velocity_func(t)
+        trans_path = [[0, 0, 0, 0, a, 0]]  # the first path point
+        first_node = True
+        for i in range(len(path) - 1):
+            cubic_func = cubic_func_list[i]
+            new_end = new_end_list[i]
+            # insert points in the transformed accordinate
+            while True:
+                t += self.insert_dt
+                v, a = v_a_func(t)
+                if first_node:
+                    insert_x = trans_path[-1][0] + v * direction * \
+                        self.insert_dt * np.cos(trans_path[-1][2])
+                    first_node = False
+                else:
+                    insert_x = trans_path[-1][0] + trans_path[-1][3] * direction * \
+                        self.insert_dt * np.cos(trans_path[-1][2])
+                    # compute the inserted point
+
+                if insert_x >= new_end[0]:
+                    # compute the rest time
+                    t_previous = (new_end[0] - trans_path[-1][0]) / \
+                        (trans_path[-1][3]*direction*np.cos(trans_path[-1][2]))
+                    rest_time = t - t_previous
+                    rest_x = insert_x - new_end[0]
+                    break
+                else:
+                    insert_y, insert_theta = cubic_func(insert_x)
+                    trans_path.append(
+                        [insert_x, insert_y, insert_theta, v, a, t])
 
             # store the insert points in the transformed path list
             # assume the initial point has the velocity, we need it to compute the steering angle
-            trans_path = [[0, 0, 0, v, acc_func(t), t]]
-            delta_dis = v * self.insert_dt * math.cos(trans_path[-1][2])
-
-            if forward:
-                while (
-                    trans_path[-1][0] + delta_dis < new_end[0]
-                ):
-                    if v <= 0:
-                        break
-
-                    # add the insert point
-                    trans_x = trans_path[-1][0] + delta_dis
-                    trans_y, trans_theta = cubic_func(trans_x)
-                    t = t+self.insert_dt
-                    v = velocity_func(t)
-                    acc = acc_func(t)
-                    trans_path.append(
-                        [trans_x, trans_y, trans_theta, v, acc, t])
-
-                    delta_dis = v * self.insert_dt * \
-                        math.cos(trans_path[-1][2])
-
-            else:
-                while (
-                    trans_path[-1][0] - delta_dis > new_end[0]
-                ):
-                    if v <= 0:
-                        break
-                    # add the insert point
-                    trans_x = trans_path[-1][0] - delta_dis
-                    trans_y, trans_theta = cubic_func(trans_x)
-                    t = t+self.insert_dt
-                    v = velocity_func(t)
-                    acc = acc_func(t)
-                    trans_path.append(
-                        [trans_x, trans_y, trans_theta, v, acc, t])
-
-                    delta_dis = v * self.insert_dt * \
-                        math.cos(trans_path[-1][2])
+            # trans_path = [[0, 0, 0, v, acc_func(t), t]]
+            # delta_dis = v * self.insert_dt * math.cos(trans_path[-1][2])
 
             # add transformed end points
-            delta_t = math.sqrt(
-                (new_end[0]-trans_path[-1][0])**2+(new_end[1]-trans_path[-1][1])**2) / v
-            t = t + delta_t
-            v = velocity_func(t)
-            acc = acc_func(t)
-            trans_path.append([new_end[0], new_end[1], new_end[2], v, acc, t])
 
-            # inverse transform these insert points
-            invers_trans_path = coordinate_transform.inverse_trans(
-                trans_path, rotation_matrix, start=start)
-            if i > 0:
-                insert_path.extend(invers_trans_path[1:])
-            else:
-                insert_path.extend(invers_trans_path)
+        # inverse transform these insert points
+        invers_trans_path = coordinate_transform.inverse_trans(
+            trans_path, rotation_matrix, start=start)
+        if i > 0:
+            insert_path.extend(invers_trans_path[1:])
+        else:
+            insert_path.extend(invers_trans_path)
 
         # compute steering angle and check the theta
         for i in range(len(insert_path) - 1):

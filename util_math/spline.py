@@ -2,9 +2,9 @@
 Author: wenqing-hnu
 Date: 2022-10
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10
+LastEditTime: 2022-10-28
 FilePath: /TPCAP_demo_Python-main/util_math/spline.py
-Description: main func for trajectory planning
+Description: spline for the interpolation
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
@@ -24,7 +24,7 @@ class spine:
     @staticmethod
     def cubic_spline(start, end):
         '''
-        description: 
+        description: note that after rotation tranformation, the new_end point is only in the quadrant 1 or 4
         param {*} start
         param {*} end
         return {*} target cubic function,include [a,b,c,d]
@@ -49,7 +49,7 @@ class spine:
             d = result[3]
             y = a*x**3+b*x**2+c*x+d
             k = 3*a*x**2 + 2*b*x + c
-            slope_angle = math.atan(k)
+            slope_angle = math.atan(k)  # [-pi/2, pi/2]
 
             return y, slope_angle
 
