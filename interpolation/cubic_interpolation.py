@@ -81,7 +81,7 @@ class interpolation:
                         dt * np.cos(trans_path[-1][2])
                     # compute the inserted point
 
-                if insert_x >= new_end[0]:
+                if abs(insert_x) >= abs(new_end[0]):
                     # compute the time from the current point to the new_end point
                     t_previous = (new_end[0] - trans_path[-1][0]) / \
                         (trans_path[-1][3]*direction*np.cos(trans_path[-1][2]))

@@ -76,4 +76,4 @@ class spine:
         y = np.array(y)
         arc_length = integrate.simpson(y=y, x=x_points)
 
-        return arc_length
+        return abs(arc_length)
