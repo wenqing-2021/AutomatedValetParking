@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-28
+LastEditTime: 2022-10-29
 FilePath: /TPCAP_demo_Python-main/util_math/spline.py
 Description: spline for the interpolation
 
@@ -48,15 +48,15 @@ class spine:
             c = result[2]
             d = result[3]
             y = a*x**3+b*x**2+c*x+d
-            k = 3*a*x**2 + 2*b*x + c
-            slope_angle = math.atan(k)  # [-pi/2, pi/2]
+            y_pie = 3*a*x**2 + 2*b*x + c
+            slope_angle = math.atan(y_pie)  # [-pi/2, pi/2]
 
-            return y, slope_angle
+            return y, y_pie, slope_angle
 
         return cubic_func, rotation_matrix, new_end
 
     @staticmethod
-    def Simpson_integral(cubic_func: function,
+    def Simpson_integral(cubic_func,
                          start_point: list,
                          end_point: list) -> np.float64:
         '''
@@ -66,9 +66,11 @@ class spine:
         return {*} the arc lenth
         '''
         y = []
-        x_points = np.linspace(start=start_point[0], stop=end_point[0], num=50)
+        x_points = np.linspace(
+            start=start_point[0], stop=end_point[0], num=100)
         for x in x_points:
-            y_i, _ = cubic_func(x)
+            _, y_pie, _ = cubic_func(x)
+            y_i = np.sqrt(1 + (y_pie)**2)
             y.append(y_i)
 
         y = np.array(y)

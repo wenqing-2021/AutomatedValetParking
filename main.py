@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-26
+LastEditTime: 2022-10-29
 FilePath: /TPCAP_demo_Python-main/main.py
 Description: main func for trajectory planning
 
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         opti_path, forward = path_optimizer.get_result(path_i)
 
         # cubic fitting
-        path_arc_length, path_i_info = interplotor.cubic_fitting(path_i)
+        path_arc_length, path_i_info = interplotor.cubic_fitting(opti_path)
 
         # velocity planning
         v_acc_func, terminiate_time = velocity_planner.solve_nlp(
@@ -83,13 +83,13 @@ if __name__ == '__main__':
 
         # insert points
         insert_path = interplotor.cubic_interpolation(
-            opti_path, v_acc_func, forward)
+            path=opti_path, path_i_info=path_i_info, v_a_func=v_acc_func, forward=forward, terminate_t=terminiate_time)
 
         # ocp problem solve
         # ocp_traj, ocp_tf = ocp_planner.solution(path=insert_path)
 
         plot_opt_path.extend(opti_path)
-        # plot_insert_path.extend(insert_path)
+        plot_insert_path.extend(insert_path)
         # plot_ocp_path.extend(ocp_traj)
 
     # animation
@@ -97,8 +97,8 @@ if __name__ == '__main__':
                     color='green', show_car=True)
     plot_final_path(path=plot_opt_path, map=park_map,
                     color='blue', show_car=True)
-    # plot_final_path(path=plot_insert_path, map=park_map,
-    #                 color='red', show_car=True)
+    plot_final_path(path=plot_insert_path, map=park_map,
+                    color='red', show_car=True)
     # plot_final_path(path=plot_ocp_path, map=park_map, color='gray')
     park_map.visual_cost_map()
     plt.show()

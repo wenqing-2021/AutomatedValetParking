@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20 00:01:21
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-26
+LastEditTime: 2022-10-29
 FilePath: /TPCAP_demo_Python-main/velocity_planner/velocity_plan.py
 Description: description for this file
 
@@ -80,28 +80,20 @@ class sin_func(velocity_func_base):
         elif t >= self.t0 and t < (self.t0 + self.t1):
             v = self.a
             acc = 0
-        elif t >= (self.t0 + self.t1) and t < self.tf:
+        elif t >= (self.t0 + self.t1) and t <= self.tf:
             v = self.a * np.sin(self.w * (t-self.t1))
             acc = self.a * self.w * np.cos(self.w * t)
 
         return v, acc
 
-    def obj_func(x):
+    def obj_func(self):
         '''
         description: the objective function
         param {*} x is a vecor: [t1,A,W]
         return {*} obj_func
         '''
-
-        return x[0] + np.pi / x[2]
-
-    def get_func(self):
-        '''
-        description: get the objective function
-        param {*} self
-        return {*} the obj_func
-        '''
-        return self.obj_func
+        return lambda x: x[0] + np.pi / x[2]
+        # return x[0] + np.pi / x[2]
 
     def constraint(self, max_v, max_a, arc_length) -> Dict:
         cons = ({"type": "ineq", "fun": lambda x: x[0] - e},  # t1 > 0
@@ -150,7 +142,7 @@ class velocity_planner:
 
         x0 = np.array((2.0, 0.5, 2.0))
 
-        obj_fun = self.v_func.get_func()
+        obj_fun = self.v_func.obj_func()
         cons = self.v_func.constraint(max_a=self.max_acceleration,
                                       max_v=self.max_v,
                                       arc_length=arc_length)

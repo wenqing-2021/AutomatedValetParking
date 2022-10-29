@@ -1,3 +1,14 @@
+'''
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-29
+FilePath: /TPCAP_demo_Python-main/util_math/coordinate_transform.py
+Description: ths function is for the coordinate transform
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
 import numpy as np
 
 
@@ -47,9 +58,11 @@ class coordinate_transform:
         start_array[:, 1] = start_array[:, 1] * start[1]
         trans_path = np.array(trans_path)
         trans_path_position = trans_path[:, :2]
+        # compute the x,y position
         inversed_path_position = (rotation_matrix.transpose().dot(trans_path_position.transpose())).transpose() + \
             start_array
         trans_path[:, :2] = inversed_path_position
+        # compute theta
         trans_path[:, 2:3] += start[2]
         inversed_path = trans_path.tolist()
 
