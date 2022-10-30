@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-29
+LastEditTime: 2022-10-30
 FilePath: /TPCAP_demo_Python-main/util_math/spline.py
 Description: spline for the interpolation
 

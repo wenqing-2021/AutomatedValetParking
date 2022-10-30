@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-29
+LastEditTime: 2022-10-30
 FilePath: /TPCAP_demo_Python-main/main.py
 Description: main func for trajectory planning
 
@@ -60,13 +60,13 @@ if __name__ == '__main__':
                                                       velocity_func_type='sin_func')
 
     # create path optimization planner
-    # ocp_planner = ocp_optimization.ocp_optimization(
-    #     park_map=park_map, vehicle=ego_vehicle, config=config)
+    ocp_planner = ocp_optimization.ocp_optimization(
+        park_map=park_map, vehicle=ego_vehicle, config=config)
 
     # rapare memory to store path
     plot_opt_path = []  # store the optimization path
     plot_insert_path = []  # store the interpolation path
-    # plot_ocp_path = []  # store ocp path
+    plot_ocp_path = []  # store ocp path
 
     # path planning
     original_path, path_info, split_path = planner.path_planning()
@@ -86,20 +86,21 @@ if __name__ == '__main__':
             path=opti_path, path_i_info=path_i_info, v_a_func=v_acc_func, forward=forward, terminate_t=terminiate_time)
 
         # ocp problem solve
-        # ocp_traj, ocp_tf = ocp_planner.solution(path=insert_path)
+        ocp_traj = ocp_planner.solution(path=insert_path)
 
         plot_opt_path.extend(opti_path)
         plot_insert_path.extend(insert_path)
-        # plot_ocp_path.extend(ocp_traj)
+        plot_ocp_path.extend(ocp_traj)
 
     # animation
-    plot_final_path(path=original_path, map=park_map,
-                    color='green', show_car=True)
-    plot_final_path(path=plot_opt_path, map=park_map,
-                    color='blue', show_car=True)
+    # plot_final_path(path=original_path, map=park_map,
+    #                 color='green', show_car=True)
+    # plot_final_path(path=plot_opt_path, map=park_map,
+    #                 color='blue', show_car=True)
     plot_final_path(path=plot_insert_path, map=park_map,
-                    color='red', show_car=True)
-    # plot_final_path(path=plot_ocp_path, map=park_map, color='gray')
+                    color='red', show_car=False)
+    plot_final_path(path=plot_ocp_path, map=park_map,
+                    color='gray', show_car=True)
     park_map.visual_cost_map()
     plt.show()
     print('solved')

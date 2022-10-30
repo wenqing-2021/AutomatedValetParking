@@ -21,6 +21,6 @@
   offset_cost: 0.8
   slack_cost: 1
 
-  # velocity plan insert points
-  velocity_plan_n: 100 # points
+  # velocity plan points
+  velocity_plan_num: 100 # num
 

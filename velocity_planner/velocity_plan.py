@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20 00:01:21
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-29
+LastEditTime: 2022-10-30
 FilePath: /TPCAP_demo_Python-main/velocity_planner/velocity_plan.py
 Description: description for this file
 
@@ -82,7 +82,7 @@ class sin_func(velocity_func_base):
             acc = 0
         elif t >= (self.t0 + self.t1) and t <= self.tf:
             v = self.a * np.sin(self.w * (t-self.t1))
-            acc = self.a * self.w * np.cos(self.w * t)
+            acc = self.a * self.w * np.cos(self.w * (t-self.t1))
 
         return v, acc
 
@@ -101,12 +101,11 @@ class sin_func(velocity_func_base):
                 {"type": "ineq", "fun": lambda x: x[2] - e},  # W > 0
                 # v < max velocity
                 {"type": "ineq", "fun": lambda x: max_v - x[1]},
-                {"type": "ineq", "fun": lambda x: x[1]*x[2]-e},  # Aw > 0
                 {"type": "ineq",
                     "fun": lambda x: max_a-x[1]*x[2]},  # a < max acceleration
                 # goal pose velocity is zero,
                 {"type": "eq", "fun": lambda x: arc_length -
-                    x[0]*x[1]+2*x[1]/x[2]},  # distance constraints
+                    x[0]*x[1]-2*x[1]/x[2]},  # distance constraints
                 )
 
         return cons
