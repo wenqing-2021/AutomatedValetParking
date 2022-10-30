@@ -34,7 +34,7 @@ if __name__ == '__main__':
     config = read_config.read_config(config_name=args.config_name)
 
     # read benchmark case
-    file = os.path.join(config['Benchmark_path'], 'Case1.csv')
+    file = os.path.join(config['Benchmark_path'], 'Case4.csv')
 
     # create the park map
     park_map = costmap._map(
@@ -93,14 +93,14 @@ if __name__ == '__main__':
         plot_ocp_path.extend(ocp_traj)
 
     # animation
-    # plot_final_path(path=original_path, map=park_map,
-    #                 color='green', show_car=True)
-    # plot_final_path(path=plot_opt_path, map=park_map,
-    #                 color='blue', show_car=True)
+    plot_final_path(path=original_path, map=park_map,
+                    color='green', show_car=True)
+    plot_final_path(path=plot_opt_path, map=park_map,
+                    color='blue', show_car=True)
     plot_final_path(path=plot_insert_path, map=park_map,
-                    color='red', show_car=False)
-    plot_final_path(path=plot_ocp_path, map=park_map,
-                    color='gray', show_car=True)
+                    color='red', show_car=True)
+    # plot_final_path(path=plot_ocp_path, map=park_map,
+    #                 color='gray', show_car=True)
     park_map.visual_cost_map()
     plt.show()
     print('solved')

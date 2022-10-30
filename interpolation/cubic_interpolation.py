@@ -131,13 +131,23 @@ class interpolation:
                 trans_path.append([rest_x, insert_y, insert_theta, v, a, t])
 
         # recompute the theta
-        # for i in range(len(insert_path)-2):
-        #     theta_angle = np.arctan2(
-        #         (insert_path[i+2][1] - insert_path[i+1][1]), insert_path[i+2][0]-insert_path[i+1][0])
-        #     theta_angle = pi_2_pi(theta_angle)
-        #     insert_path[i+1][2] = theta_angle
+        for i in range(len(insert_path)-2):
+            theta_angle = np.arctan2(
+                (insert_path[i+2][1] - insert_path[i+1][1]), insert_path[i+2][0]-insert_path[i+1][0])
+            theta_angle = pi_2_pi(theta_angle)
+            if not forward:
+                theta_angle += np.pi
+            insert_path[i+1][2] = theta_angle
 
         # corect the theta angle
+        for i in range(len(insert_path)-1):
+            if abs(insert_path[i+1][2] - insert_path[i][2]) <= np.pi:
+                continue
+            else:
+                while insert_path[i+1][2] - insert_path[i][2] > np.pi:
+                    insert_path[i+1][2] -= np.pi
+                while insert_path[i+1][2] - insert_path[i][2] < np.pi:
+                    insert_path[i+1][2] += np.pi
 
         # compute steering angle and check the theta
         for i in range(len(insert_path) - 1):

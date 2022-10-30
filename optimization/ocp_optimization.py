@@ -34,7 +34,7 @@ class ocp_optimization:
         self.config = config
         self.map = park_map
         self.vehicle = vehicle
-        self.expand_dis = 2 * config['expand_dis']  # m
+        self.expand_dis = config['expand_dis']  # m
 
     def compute_collision_H(self, path):
         '''
@@ -542,7 +542,7 @@ class ocp_optimization:
                 omega_bounds = (-0.5, 0.5)
                 return omega_bounds
             elif i == (variable_n-1):
-                tf_bounds = (0, 20)
+                tf_bounds = (0, 200)
                 return tf_bounds
 
         model.variables = pyo.Var(x, within=pyo.Reals,
@@ -633,6 +633,8 @@ class ocp_optimization:
             points.append(pyo.value(model.variables[index]))
             print('solution', index)
             print(pyo.value(model.variables[index]))
+
+        optimal_traj.append(points)
 
         print('solved ocp problem')
         print('minimum value', pyo.value(model.obj1))
