@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
         # insert points
         insert_path = interplotor.cubic_interpolation(
-            path=opti_path, path_i_info=path_i_info, v_a_func=v_acc_func, forward=forward, terminate_t=terminiate_time)
+            path=opti_path, path_i_info=path_i_info, v_a_func=v_acc_func, forward=forward, terminate_t=terminiate_time, path_arc_length=path_arc_length)
 
         # ocp problem solve
         ocp_traj = ocp_planner.solution(path=insert_path)

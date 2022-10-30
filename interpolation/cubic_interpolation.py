@@ -39,7 +39,8 @@ class interpolation:
                             path_i_info: dict,
                             v_a_func,
                             forward: bool = None,
-                            terminate_t: np.float64 = None) -> List[List]:
+                            terminate_t: np.float64 = None,
+                            path_arc_length=None) -> List[List]:
         '''
         description:
         path: the interporlation path
@@ -49,6 +50,10 @@ class interpolation:
         '''
 
         # update the theta of waypoints
+        if path_arc_length < 1:
+            self.insert_num = 25
+        elif path_arc_length >= 1 and path_arc_length <= 2:
+            self.insert_num = 50
         t = 0
         preivous_t = 0
         insert_path = []
@@ -56,12 +61,13 @@ class interpolation:
         rotation_matrix_list = path_i_info['rotation_matrix_list']
         new_end_list = path_i_info['new_end_list']
         dt = terminate_t / self.insert_num
-
-        _, a = v_a_func(0)
         if forward:
             direction = 1
         else:
             direction = -1
+
+        _, a = v_a_func(0)
+        a = a * direction
 
         trans_path = [[0, 0, 0, 0, a, 0]]  # the first path point
 
@@ -80,9 +86,10 @@ class interpolation:
                 y = np.array(y)
                 delta_s = integrate.simpson(y=y, x=t_x)
                 insert_x = trans_path[-1][0] + \
-                    direction * delta_s * np.cos(trans_path[-1][2])
+                    direction * abs(delta_s) * np.cos(trans_path[-1][2])
                 v, a = v_a_func(t)
                 v = v * direction
+                a = a * direction
                 # compute the inserted point
 
                 if abs(insert_x) > abs(new_end[0]):
@@ -120,6 +127,7 @@ class interpolation:
                 insert_y, _, insert_theta = next_cubic_func(rest_x)
                 v, a = v_a_func(t)
                 v = v * direction
+                a = a * direction
                 trans_path.append([rest_x, insert_y, insert_theta, v, a, t])
 
         # recompute the theta

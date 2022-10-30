@@ -34,7 +34,7 @@ class ocp_optimization:
         self.config = config
         self.map = park_map
         self.vehicle = vehicle
-        self.expand_dis = config['expand_dis']  # m
+        self.expand_dis = 2 * config['expand_dis']  # m
 
     def compute_collision_H(self, path):
         '''
@@ -499,6 +499,8 @@ class ocp_optimization:
         initial_solution = np.append(initial_path, tf_initial)
         variable_n = len(initial_solution)
         points_n = int((variable_n - 1) / 7)
+        final_pose_sin = math.sin(initial_solution[-6])
+        final_pose_cos = math.cos(initial_solution[-6])
 
         model.index_x = pyo.RangeSet(0, variable_n-1, 1)
         x = np.linspace(0, variable_n-1, variable_n, dtype=np.int32)
@@ -509,6 +511,7 @@ class ocp_optimization:
 
         # get collision bounds
         x_max, y_max, x_min, y_min = self.compute_collision_H(path=path)
+        small_v = 0.0001  # m/s
 
         def bound(model, i):
             i = int(i)
@@ -524,7 +527,10 @@ class ocp_optimization:
                 theta_bounds = (-3.1415926, 3.1415926)
                 return theta_bounds
             elif (i-3) % 7 == 0:
-                v_bounds = (-2.5, 2.5)
+                if i == 3:
+                    v_bounds = (0, small_v)
+                else:
+                    v_bounds = (-2.5, 2.5)
                 return v_bounds
             elif (i-4) % 7 == 0:
                 a_bounds = (-1, 1)
@@ -536,7 +542,7 @@ class ocp_optimization:
                 omega_bounds = (-0.5, 0.5)
                 return omega_bounds
             elif i == (variable_n-1):
-                tf_bounds = (0, 500)
+                tf_bounds = (0, 20)
                 return tf_bounds
 
         model.variables = pyo.Var(x, within=pyo.Reals,
@@ -546,10 +552,9 @@ class ocp_optimization:
         model.variables[0].fix(initial_solution[0])
         model.variables[1].fix(initial_solution[1])
         model.variables[2].fix(initial_solution[2])
-        model.variables[3].fix(0)
         model.variables[variable_n-8].fix(initial_solution[-8])
         model.variables[variable_n-7].fix(initial_solution[-7])
-        model.variables[variable_n-6].fix(initial_solution[-6])
+        # model.variables[variable_n-6].fix(initial_solution[-6])
         model.variables[variable_n-5].fix(0)
         model.variables[variable_n-4].fix(0)
         model.variables[variable_n-2].fix(0)
@@ -562,7 +567,7 @@ class ocp_optimization:
             input: x, y, theta, v, a, delta, w, ..., tf
             '''
             expr = 0
-            # expr = model.variables[variable_n-1] ** 2
+            expr = model.variables[variable_n-1]
             # print(len(model.variables))
             for i in range(variable_n):
                 if (i-4) % 7 == 0:
@@ -577,66 +582,46 @@ class ocp_optimization:
 
         model.obj1 = pyo.Objective(rule=objective, sense=pyo.minimize)
 
-        def kinematic_constraints_x(model, i):
-            if i % 7 != 0 or i == 0:
+        def kinematic_constraint(model, i):
+            if i < 7:
                 return pyo.Constraint.Skip
-            else:
+            elif i % 7 == 0:
                 delta_s = model.variables[i-4] * dt
                 delta_x = delta_s * pyo.cos(model.variables[i-5])
+                # return abs(model.variables[i] - model.variables[i-7] - delta_x) <= 1e-6
                 return model.variables[i] == model.variables[i-7] + delta_x
-
-        def kinematic_constraints_y(model, i):
-            if (i-1) % 7 != 0 or (i-1) == 0:
-                return pyo.Constraint.Skip
-            else:
+            elif (i-1) % 7 == 0:
                 delta_s = model.variables[i-5] * dt
                 delta_y = delta_s * pyo.sin(model.variables[i-6])
-                return abs(model.variables[i] - model.variables[i-7] - delta_y) <= 1e-6
-
-        def kinematic_constraints_theta(model, i):
-            if (i-2) % 7 != 0 or (i-2) == 0:
-                return pyo.Constraint.Skip
-            else:
+                return model.variables[i] == model.variables[i-7] + delta_y
+            elif (i-2) % 7 == 0:
                 delta_s = model.variables[i-6] * dt
                 delta_theta = delta_s * pyo.tan(model.variables[i-4]) / Lw
                 return model.variables[i] == model.variables[i-7] + delta_theta
-
-        def velocity_eq_constraint(model, i):
-            if (i-3) % 7 != 0 or (i-3) == 0:
-                return pyo.Constraint.Skip
-            else:
+            elif (i-3) % 7 == 0:
                 delta_v = model.variables[i-6] * dt
-
                 return model.variables[i] == model.variables[i-7] + delta_v
-
-        def steering_angle_eq_constraint(model, i):
-            if (i-5) % 7 != 0 or (i-5) == 0:
-                return pyo.Constraint.Skip
-            else:
+            elif (i-5) % 7 == 0:
                 delta_sigma = model.variables[i-6] * dt
                 return model.variables[i] == model.variables[i-7] + delta_sigma
+            else:
+                return pyo.Constraint.Skip
+        model.eq_kinematic = pyo.Constraint(
+            model.index_x, rule=kinematic_constraint)
 
-        model.eq_sigma = pyo.Constraint(
-            model.index_x, rule=steering_angle_eq_constraint)
-
-        model.eq_v = pyo.Constraint(model.index_x, rule=velocity_eq_constraint)
-
-        model.eq_theta = pyo.Constraint(
-            model.index_x, rule=kinematic_constraints_theta)
-
-        model.eq_y = pyo.Constraint(
-            model.index_x, rule=kinematic_constraints_y)
-
-        model.eq_x = pyo.Constraint(
-            model.index_x, rule=kinematic_constraints_x)
+        model.final_theta1 = pyo.Constraint(expr=pyo.sin(
+            model.variables[variable_n-6]) == final_pose_sin)
+        model.final_theta2 = pyo.Constraint(expr=pyo.cos(
+            model.variables[variable_n-6]) == final_pose_cos)
 
         # solution
         model.variables.pprint()
         model.obj1.pprint()
         # opt = pyo.SolverFactory(
         #     'ipopt', executable=solver_path)  # 指定 ipopt 作为求解器
-        opt = pyo.SolverFactory('ipopt')
-        solution = opt.solve(model)
+        solver = pyo.SolverFactory('ipopt')
+        solver.options['max_iter'] == 1000
+        solution = solver.solve(model)
         solution.write()
 
         optimal_traj = []
