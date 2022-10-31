@@ -624,10 +624,13 @@ class ocp_optimization:
         solution = solver.solve(model)
         solution.write()
 
+        optimal_tf = pyo.value(model.variables[variable_n-1])
+        optimal_dt = optimal_tf / (points_n-1)
         optimal_traj = []
         points = []
-        for index in range(variable_n):
-            if index % 7 == 0 and index > 0 and index < variable_n-1:
+
+        for index in range(variable_n-1):
+            if index % 7 == 0 and index > 0:
                 optimal_traj.append(points)
                 points = []
             points.append(pyo.value(model.variables[index]))
@@ -639,4 +642,4 @@ class ocp_optimization:
         print('solved ocp problem')
         print('minimum value', pyo.value(model.obj1))
 
-        return optimal_traj
+        return optimal_traj, optimal_tf, optimal_dt

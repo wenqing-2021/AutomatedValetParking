@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-30
+LastEditTime: 2022-10-31
 FilePath: /TPCAP_demo_Python-main/interpolation/cubic_interpolation.py
 Description: interpolation more points on the curve
 
@@ -78,6 +78,8 @@ class interpolation:
             while True:
                 preivous_t = t
                 t += dt
+                if t > terminate_t:
+                    t = terminate_t
                 t_x = np.linspace(preivous_t, t, 100)
                 y = []
                 for x_i in t_x:
@@ -132,11 +134,13 @@ class interpolation:
 
         # recompute the theta
         for i in range(len(insert_path)-2):
-            theta_angle = np.arctan2(
-                (insert_path[i+2][1] - insert_path[i+1][1]), insert_path[i+2][0]-insert_path[i+1][0])
+            if forward:
+                theta_angle = np.arctan2(
+                    (insert_path[i+2][1] - insert_path[i+1][1]), insert_path[i+2][0]-insert_path[i+1][0])
+            else:
+                theta_angle = np.arctan2(
+                    (insert_path[i+1][1] - insert_path[i+2][1]), insert_path[i+1][0]-insert_path[i+2][0])
             theta_angle = pi_2_pi(theta_angle)
-            if not forward:
-                theta_angle += np.pi
             insert_path[i+1][2] = theta_angle
 
         # corect the theta angle

@@ -139,7 +139,11 @@ class path_planner:
 
                 # extend points
                 for j in range(extend_num):
-                    if final_path[i+1][0] > final_path[i][0]:
+                    forward_1 = (final_path[i+1][0] > final_path[i][0]) and (
+                        final_path[i][2] > -np.pi/2 and final_path[i][2] < np.pi/2)
+                    forward_2 = (final_path[i+1][0] < final_path[i][0]) and (
+                        (final_path[i][2] > np.pi/2 and final_path[i][2] < np.pi) or (final_path[i][2] > -np.pi and final_path[i][2] < -np.pi/2))
+                    if forward_1 or forward_2:
                         speed = self.vehicle.max_v
                     else:
                         speed = -self.vehicle.max_v

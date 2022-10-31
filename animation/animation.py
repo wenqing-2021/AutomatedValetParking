@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10
+LastEditTime: 2022-10-31
 FilePath: /TPCAP_demo_Python-main/animation/animation.py
 Description: main func for trajectory planning
 
@@ -57,8 +57,6 @@ def plot_path(x,y,color='grey'):
     plt.draw()
 
 def plot_final_path(path, map:_map, color='green', show_car=False):
-    # plot cost map
-    plot_obstacles(map)
     x,y=[],[]
     v = Vehicle()
     for i in range(len(path)):
