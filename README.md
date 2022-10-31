@@ -70,6 +70,8 @@ The Case1.csv is provided by https://www.tpcap.net/#/benchmarks, and the details
 run the main.py to show the animation process
 
 ## 3. Todo List
-- [] more spine function
-- [] more velocity plan function
-- [] store the trajectory data 
+ 
+- [ ] more spine function
+- [ ] more velocity plan function
+- [ ] store the trajectory data 
+
