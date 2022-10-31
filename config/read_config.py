@@ -1,3 +1,15 @@
+'''
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-31
+FilePath: /HybridAstar/config/read_config.py
+Description: read config 
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
+
 import yaml
 import os
 

@@ -1,6 +1,14 @@
-# coding:utf-8
-# Author: Yuansj
-# Last update:2022/10/20
+'''
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-31
+FilePath: /HybridAstar/optimization/path_optimazition.py
+Description: smooth the initial path 
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
 
 from typing import List
 import numpy as np

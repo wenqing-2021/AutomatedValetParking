@@ -1,13 +1,14 @@
 '''
 Author: wenqing-hnu
-Date: 2022-10-20 00:01:21
+Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-30
-FilePath: /TPCAP_demo_Python-main/velocity_planner/velocity_plan.py
-Description: description for this file
+LastEditTime: 2022-10-31
+FilePath: /HybridAstar/velocity_planner/velocity_plan.py
+Description: velocity planner for the path
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
+
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple

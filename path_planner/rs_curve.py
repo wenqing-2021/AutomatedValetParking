@@ -1,3 +1,15 @@
+'''
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-31
+FilePath: /HybridAstar/path_planner/rs_curve.py
+Description: rs curve for hybrid a star
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
+
 import math
 import numpy as np
 import matplotlib.pyplot as plt

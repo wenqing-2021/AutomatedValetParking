@@ -3,11 +3,12 @@ Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
 LastEditTime: 2022-10-31
-FilePath: /TPCAP_demo_Python-main/interpolation/cubic_interpolation.py
-Description: interpolation more points on the curve
+FilePath: /HybridAstar/interpolation/cubic_interpolation.py
+Description: cubic interpolation for the smooth path 
 
-Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
+
 
 
 import math

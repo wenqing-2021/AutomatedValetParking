@@ -2,6 +2,8 @@
 /__pycache__
 /.vscode
 /.VSCodeCounter
+/optimization/ipopt
+
 # python
 *.py[cod]
 

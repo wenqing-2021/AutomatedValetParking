@@ -1,10 +1,13 @@
-# coding:utf-8
-# Author: Yuansj
-# start: 2022/06/04
-# update 2022/06/13: finish path_planning V1.0
-# update 2022/06/15: V1.1 fix collision check function and it works for case 1
-# Note: V1.1 does not include speed planning
-# update 2022/06/25: V1.2 add path optimization but we do not have curvature limit
+'''
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-31
+FilePath: /HybridAstar/path_planner/hybrid_a_star.py
+Description: hybrid a star 
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
 
 import numpy as np
 import math

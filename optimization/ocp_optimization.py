@@ -1,18 +1,16 @@
-# Author: Yuansj
-# 2022/10.01
-# 问题记录：求解失败，因为内存溢出。
-# 10.10 : 换用scipy 进行求解，method为SLSQP，可以求解。不过求解的点和原始点几乎一致。
-
 '''
-This function is used to find an optimal traj for the parking. the initial solution is from path_optimazition.py.
-# problem-interface
-the usage of cyipopt is https://cyipopt.readthedocs.io/en/stable/tutorial.html
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-31
+FilePath: /HybridAstar/optimization/ocp_optimization.py
+Description: use ipopt to solve the optimization problem
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
 
-# import jax.numpy as np
-# from jax import jit, grad, jacfwd, jacrev
-# from scipy.optimize import minimize
-# from cyipopt import minimize_ipopt
+
+
 from __future__ import division
 from map.costmap import _map, Vehicle
 import math

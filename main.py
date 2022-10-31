@@ -1,10 +1,10 @@
 '''
 Author: wenqing-hnu
-Date: 2022-10
+Date: 2022-10-20
 LastEditors: wenqing-hnu
 LastEditTime: 2022-10-31
-FilePath: /TPCAP_demo_Python-main/main.py
-Description: main func for trajectory planning
+FilePath: /HybridAstar/main.py
+Description: the main file of the hybrid a star algorithm for parking
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
@@ -27,6 +27,7 @@ import argparse
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='hybridAstar')
     parser.add_argument("--config_name", type=str, default="config")
+    parser.add_argument("--case_name", type=str, default="Case1")
     args = parser.parse_args()
 
     # initial
@@ -34,7 +35,8 @@ if __name__ == '__main__':
     config = read_config.read_config(config_name=args.config_name)
 
     # read benchmark case
-    file = os.path.join(config['Benchmark_path'], 'Case4.csv')
+    case_name = args.case_name + '.csv'
+    file = os.path.join(config['Benchmark_path'], case_name)
 
     # create the park map
     park_map = costmap._map(

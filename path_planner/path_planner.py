@@ -1,3 +1,15 @@
+'''
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-31
+FilePath: /HybridAstar/path_planner/path_planner.py
+Description: path plan
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
+
 import copy
 import numpy as np
 from scipy import spatial

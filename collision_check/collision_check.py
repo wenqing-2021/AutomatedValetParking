@@ -1,6 +1,14 @@
-# coding:utf-8
-# Author: Yuansj
-# Last update:2022/06/13
+'''
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-31
+FilePath: /HybridAstar/collision_check/collision_check.py
+Description: provide two-circle check and distance check
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
 
 from abc import abstractmethod
 from typing import Tuple

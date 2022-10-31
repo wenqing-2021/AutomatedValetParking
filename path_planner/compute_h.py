@@ -1,6 +1,14 @@
-# coding:utf-8
-# Author: Yuansj
-# 2022/06/04
+'''
+Author: wenqing-hnu
+Date: 2022-10-20
+LastEditors: wenqing-hnu
+LastEditTime: 2022-10-31
+FilePath: /HybridAstar/path_planner/compute_h.py
+Description: compute the heuristic value use dijkstra
+
+Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
+'''
+
 
 from matplotlib.pyplot import grid
 import numpy as np
