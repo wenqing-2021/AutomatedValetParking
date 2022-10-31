@@ -9,6 +9,12 @@ Description: generate the map and cost map. the vehicle parameter is provided by
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
 
+'''
+thanks Prof. Bai Li provides the vehicle data: https://github.com/libai1943/TPCAP_demo_Python
+'''
+
+
+
 
 import string
 import numpy as np
@@ -16,8 +22,6 @@ import math
 import csv
 import shapely.geometry
 import matplotlib.pyplot as plt
-
-
 class Vehicle:
     def __init__(self):
         self.lw = 2.8  # wheelbase
