@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-31
+LastEditTime: 2022-11-02
 FilePath: /HybridAstar/path_planner/path_planner.py
 Description: path plan
 
@@ -16,7 +16,7 @@ from scipy import spatial
 from typing import Dict, Tuple, List
 
 from path_planner.hybrid_a_star import hybrid_a_star
-from animation.animation import plot_collision_p
+from animation.animation import ploter
 from map.costmap import Vehicle, _map
 from collision_check import collision_check
 from path_planner.rs_curve import PATH
@@ -80,7 +80,7 @@ class path_planner:
             # plot the collision position
             if collision and self.config['draw_collision']:
                 collision_p = info['collision_position']
-                plot_collision_p(
+                ploter.plot_collision_p(
                     collision_p[0], collision_p[1], collision_p[2], self.map)
 
             if not collision and info['in_radius']:

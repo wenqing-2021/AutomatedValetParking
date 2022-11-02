@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-31
+LastEditTime: 2022-11-02
 FilePath: /HybridAstar/main.py
 Description: the main file of the hybrid a star algorithm for parking
 
@@ -11,10 +11,10 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 
 
 from path_planner import path_planner
-from animation.animation import *
+from animation.animation import ploter, plt
 from map import costmap
 from velocity_planner import velocity_plan
-from interpolation import cubic_interpolation
+from interpolation import path_interpolation
 from optimization import path_optimazition, ocp_optimization
 from config import read_config
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     path_optimizer = path_optimazition.path_opti(park_map, ego_vehicle, config)
 
     # create path interpolation
-    interplotor = cubic_interpolation.interpolation(
+    interplotor = path_interpolation.interpolation(
         config=config, map=park_map, vehicle=ego_vehicle)
 
     # create velocity planner
@@ -106,16 +106,16 @@ if __name__ == '__main__':
 
     # animation
     print('trajectory_time:', optimal_tf)
-    plot_obstacles(map=park_map)
+    ploter.plot_obstacles(map=park_map)
     park_map.visual_cost_map()
-    plot_final_path(path=original_path, map=park_map,
-                    color='green', show_car=False)
-    plot_final_path(path=plot_opt_path, map=park_map,
-                    color='blue', show_car=False)
-    plot_final_path(path=plot_insert_path, map=park_map,
-                    color='red', show_car=False)
-    plot_final_path(path=plot_ocp_path, map=park_map,
-                    color='gray', show_car=True)
+    ploter.plot_final_path(path=original_path, map=park_map,
+                           color='green', show_car=False)
+    ploter.plot_final_path(path=plot_opt_path, map=park_map,
+                           color='blue', show_car=False)
+    ploter.plot_final_path(path=plot_insert_path, map=park_map,
+                           color='red', show_car=False)
+    ploter.plot_final_path(path=plot_ocp_path, map=park_map,
+                           color='gray', show_car=True)
 
     plt.show()
     print('solved')
