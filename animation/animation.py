@@ -56,19 +56,22 @@ class ploter:
         plt.draw()
 
     @staticmethod
-    def plot_path(x,y,color='grey'):
+    def plot_path(x,y,color='grey',label=None):
         plt.figure(1)
-        plt.plot(x,y,'*-',linewidth=1,color=color)
+        plt.plot(x,y,'-',linewidth=0.8,color=color,label=label)
         plt.draw()
 
     @staticmethod
-    def plot_final_path(path, map:_map, color='green', show_car=False):
+    def plot_final_path(path, color='green', show_car=False, label:str=None):
         x,y=[],[]
         v = Vehicle()
         for i in range(len(path)):
             x.append(path[i][0])
             y.append(path[i][1])
-            ploter.plot_path(x,y,color)
+            if i == 0:
+                ploter.plot_path(x,y,color,label)
+            else:
+                ploter.plot_path(x,y,color)
             if show_car:
                 points = v.create_polygon(path[i][0], path[i][1], path[i][2])
                 plt.plot(points[:, 0], points[:, 1], linestyle='--', linewidth = 0.4, color = color)

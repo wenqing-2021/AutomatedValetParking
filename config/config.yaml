@@ -1,4 +1,4 @@
-# config for hybrid a star
+## config for hybrid a star
   steering_angle_num: 5 # steering angle discrete
   dt: 0.6 # s used for compute trajectory distance while expanding nodes
   Benchmark_path: BenchmarkCases # case folder name
@@ -7,20 +7,30 @@
   flag_radius: 18 # m (in this circle area, we use rs curve to connect goal pose)
   extended_num: 1 # extend point at the end of orignal path
 
-  # collision check
+## collision check
   safe_side_dis: 0.1 # m
   safe_fr_dis: 0.1 # m
-  collision_check: distance # circle or distance, choose a method for collision check
+  collision_check: distance # choose a method for collision check: 'circle', 'distance', 
   draw_collision: False # draw collision position while searching new nodes
 
-  # m expand distance for path optimization
-  expand_dis: 0.8
+## path optimization
+  # expand distance for path optimization
+  expand_dis: 0.8 #m
   # weight used for path optimization
   smooth_cost: 5
   compact_cost: 3
   offset_cost: 0.8
   slack_cost: 1
 
+## velocity plan
+  # velocity function
+  velocity_func_type: sin_func # only sin_func for teh moment
   # velocity plan points
   velocity_plan_num: 100 # num
 
+
+## save info
+  # save path
+  save_path: ./solution # do not edit
+  # save pictures
+  pic_path: ./pictures

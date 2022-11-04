@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-02
+LastEditTime: 2022-11-04
 FilePath: /HybridAstar/main.py
 Description: the main file of the hybrid a star algorithm for parking
 
@@ -12,6 +12,7 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 
 from path_planner import path_planner
 from animation.animation import ploter, plt
+from animation.record_solution import DataRecorder
 from map import costmap
 from velocity_planner import velocity_plan
 from interpolation import path_interpolation
@@ -59,16 +60,16 @@ if __name__ == '__main__':
 
     # create velocity planner
     velocity_planner = velocity_plan.velocity_planner(vehicle=ego_vehicle,
-                                                      velocity_func_type='sin_func')
+                                                      velocity_func_type=config['velocity_func_type'])
 
     # create path optimization planner
     ocp_planner = ocp_optimization.ocp_optimization(
         park_map=park_map, vehicle=ego_vehicle, config=config)
 
     # rapare memory to store path
-    plot_opt_path = []  # store the optimization path
-    plot_insert_path = []  # store the interpolation path
-    plot_ocp_path = []  # store ocp path
+    final_opt_path = []  # store the optimization path
+    final_insert_path = []  # store the interpolation path
+    final_ocp_path = []  # store ocp path
 
     # path planning
     optimal_tf = 0
@@ -95,27 +96,37 @@ if __name__ == '__main__':
             path=insert_path)
         optimal_time_info.append([optimal_ti, optimal_dt])
         # add time information
-        for ocp_i in range(len(ocp_traj)):
+        for ocp_i in ocp_traj:
             t += optimal_dt
-            ocp_traj[ocp_i].append(t)
+            ocp_i.append(t)
         optimal_tf += optimal_ti
 
-        plot_opt_path.extend(opti_path)
-        plot_insert_path.extend(insert_path)
-        plot_ocp_path.extend(ocp_traj)
+        final_opt_path.extend(opti_path)
+        final_insert_path.extend(insert_path)
+        final_ocp_path.extend(ocp_traj)
+
+    # save traj into a csv file
+    DataRecorder.record(save_path=config['save_path'],
+                        save_name=case_name, trajectory=final_ocp_path)
 
     # animation
     print('trajectory_time:', optimal_tf)
     ploter.plot_obstacles(map=park_map)
     park_map.visual_cost_map()
-    ploter.plot_final_path(path=original_path, map=park_map,
+    ploter.plot_final_path(path=original_path, label='Hybrid A*',
                            color='green', show_car=False)
-    ploter.plot_final_path(path=plot_opt_path, map=park_map,
+    ploter.plot_final_path(path=final_opt_path, label='Optimized Path',
                            color='blue', show_car=False)
-    ploter.plot_final_path(path=plot_insert_path, map=park_map,
+    ploter.plot_final_path(path=final_insert_path, label='Interpolation Traj',
                            color='red', show_car=False)
-    ploter.plot_final_path(path=plot_ocp_path, map=park_map,
+    ploter.plot_final_path(path=final_ocp_path, label='Optimized Traj',
                            color='gray', show_car=True)
-
+    plt.legend()
+    fig_name = args.case_name + '.png'
+    fig_path = config['pic_path']
+    if not os.path.exists(fig_path):
+        os.makedirs(fig_path)
+    save_fig = os.path.join(fig_path, fig_name)
+    plt.savefig(save_fig, dpi=600)
     plt.show()
     print('solved')
