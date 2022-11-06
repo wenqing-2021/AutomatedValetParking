@@ -72,7 +72,15 @@ The aniamation pictures including gif and png is stored in the pictures folder.
 
 ![case1_png](pictures/Case1.png "Case_1 Traj_Png")
 
+![case1_png](pictures/Case2.png "Case_2 Traj_Png")
+
+![case1_png](pictures/Case3.png "Case_3 Traj_Png")
+
 ![Case1_gif](pictures/Case1.gif "Case_1_Traj_gif")
+
+![Case1_gif](pictures/Case2.gif "Case_2_Traj_gif")
+
+![Case1_gif](pictures/Case3.gif "Case_3_Traj_gif")
 
 ## 3. Todo List
  
