@@ -110,7 +110,7 @@ class ploter:
     
     @staticmethod
     def save_gif(path, color='green', show_car=False, save_gif_name=None, map=None):
-        fig = plt.figure(2, dpi=300, figsize=(40,30))
+        fig = plt.figure(2, dpi=300, figsize=(16,12))
         ploter.plot_obstacles(map=map, fig_id=2)
         x,y=[],[]
         v = Vehicle()
