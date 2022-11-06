@@ -3,7 +3,7 @@ Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
 LastEditTime: 2022-11-06
-FilePath: /HybridAstar/main.py
+FilePath: /Automated Valet Parking/main.py
 Description: the main file of the hybrid a star algorithm for parking
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
