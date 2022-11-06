@@ -127,7 +127,7 @@ def main(file, config):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='hybridAstar')
     parser.add_argument("--config_name", type=str, default="config")
-    parser.add_argument("--case_name", type=str, default="Case2")
+    parser.add_argument("--case_name", type=str, default="Case1")
     args = parser.parse_args()
 
     # initial
