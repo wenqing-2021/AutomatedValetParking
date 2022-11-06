@@ -614,8 +614,8 @@ class ocp_optimization:
         # solution
         model.variables.pprint()
         model.obj1.pprint()
-        # opt = pyo.SolverFactory(
-        #     'ipopt', executable=solver_path)  # 指定 ipopt 作为求解器
+        # solver = pyo.SolverFactory(
+        # 'ipopt', executable=solver_path)  # 指定 ipopt 作为求解器
         solver = pyo.SolverFactory('ipopt')
         solver.options['max_iter'] == 1000
         solution = solver.solve(model)
