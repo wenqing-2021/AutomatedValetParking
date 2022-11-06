@@ -71,6 +71,7 @@ The solution of the trajectory is stored as a .csv file and its column name is `
 The aniamation pictures including gif and png is stored in the pictures folder.
 
 ![case1_png](pictures/Case1.png "Case_1 Traj_Png")
+
 ![Case1_gif](pictures/Case1.gif, "Case_1_Traj_gif")
 
 ## 3. Todo List
