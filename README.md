@@ -41,7 +41,9 @@ Hybrid A star -> Path optimization -> Cubic interpolation -> Velocity plan -> So
 ```
 
 ### 1.2 Requirement
-Python version >= 3.8
+Python version == 3.8 and Only support Ubuntu system (tested in 20.04, but I think 18.04 is suitable as well)
+
+Not support in windows 64bit because the IPOPT could be not executable. 
 ```
 pip install -r requirements.txt
 
