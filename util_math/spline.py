@@ -3,7 +3,7 @@ Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
 LastEditTime: 2022-10-31
-FilePath: /HybridAstar/util_math/spline.py
+FilePath: /Automated Valet Parking/util_math/spline.py
 Description: generate the spine function and compute its length
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 

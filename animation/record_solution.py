@@ -2,9 +2,9 @@
 Author: wenqing-hnu
 Date: 2022-11-02
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-04
-FilePath: /HybridAstar/animation/record_solution.py
-Description: record trajectory into a file
+LastEditTime: 2022-11-06
+FilePath: /Automated Valet Parking/animation/record_solution.py
+Description: record the trajectory into a csv file
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''

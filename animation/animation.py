@@ -3,11 +3,12 @@ Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
 LastEditTime: 2022-11-06
-FilePath: /HybridAstar/animation/animation.py
-Description: animation for the final trajectory
+FilePath: /Automated Valet Parking/animation/animation.py
+Description: animation for the solving process
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
+
 
 
 import numpy as np

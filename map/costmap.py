@@ -2,12 +2,13 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-31
-FilePath: /HybridAstar/map/costmap.py
-Description: generate the map and cost map. the vehicle parameter is provided by https://www.tpcap.net/#/
+LastEditTime: 2022-11-06
+FilePath: /Automated Valet Parking/map/costmap.py
+Description: generate cost map
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
+
 
 '''
 thanks Prof. Bai Li provides the vehicle data: https://github.com/libai1943/TPCAP_demo_Python

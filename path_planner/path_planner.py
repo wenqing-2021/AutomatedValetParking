@@ -2,8 +2,8 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-02
-FilePath: /HybridAstar/path_planner/path_planner.py
+LastEditTime: 2022-11-06
+FilePath: /Automated Valet Parking/path_planner/path_planner.py
 Description: path plan
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 

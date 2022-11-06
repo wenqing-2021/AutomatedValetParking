@@ -2,13 +2,12 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-31
-FilePath: /HybridAstar/optimization/ocp_optimization.py
+LastEditTime: 2022-11-06
+FilePath: /Automated Valet Parking/optimization/ocp_optimization.py
 Description: use ipopt to solve the optimization problem
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
-
 
 
 from __future__ import division

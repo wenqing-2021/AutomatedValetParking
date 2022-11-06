@@ -2,8 +2,8 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-31
-FilePath: /HybridAstar/velocity_planner/velocity_plan.py
+LastEditTime: 2022-11-06
+FilePath: /Automated Valet Parking/velocity_planner/velocity_plan.py
 Description: velocity planner for the path
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 

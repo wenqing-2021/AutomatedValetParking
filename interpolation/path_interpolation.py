@@ -2,9 +2,9 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-02
-FilePath: /HybridAstar/interpolation/path_interpolation.py
-Description: path interpolation considering velocity
+LastEditTime: 2022-11-06
+FilePath: /Automated Valet Parking/interpolation/path_interpolation.py
+Description: interpolation for the optimized path
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''

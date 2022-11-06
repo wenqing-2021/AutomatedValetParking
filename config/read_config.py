@@ -2,9 +2,9 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-31
-FilePath: /HybridAstar/config/read_config.py
-Description: read config 
+LastEditTime: 2022-11-06
+FilePath: /Automated Valet Parking/config/read_config.py
+Description: read config and return a dict
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''

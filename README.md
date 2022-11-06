@@ -1,4 +1,4 @@
-# Hybrid A Star for Parking
+# Automated Valet Parking
 ## 1. Introduction
 This repo provides an algorithm which uses hybrid a star for the initial path and the optimization based method to generate the trajectory. The pipeline of this algorithm is:
 
@@ -11,45 +11,39 @@ Hybrid A star -> Path optimization -> Cubic interpolation -> Velocity plan -> So
 .
 ├── animation
 │   ├── animation.py
-│   └── __init__.py
+│   └── record_solution.py
 ├── collision_check
-│   ├── collision_check.py
-│   └── __init__.py
+│   └── collision_check.py
 ├── config
 │   ├── config.yaml
-│   ├── __init__.py
 │   └── read_config.py
 ├── interpolation
-│   ├── cubic_interpolation.py
-│   └── __init__.py
+│   └── path_interpolation.py
 ├── main.py
 ├── map
-│   ├── costmap.py
-│   └── __init__.py
+│   └── costmap.py
 ├── optimization
-│   ├── __init__.py
 │   ├── ipopt
 │   ├── ocp_optimization.py
 │   └── path_optimazition.py
 ├── path_planner
 │   ├── compute_h.py
 │   ├── hybrid_a_star.py
-│   ├── __init__.py
 │   ├── path_planner.py
 │   └── rs_curve.py
+├── solution
+│   └── Solution_Case1.csv
 ├── util_math
 │   ├── coordinate_transform.py
-│   ├── __init__.py
 │   └── spline.py
 └── velocity_planner
-    ├── __init__.py
     └── velocity_plan.py
 ```
 
 ### 1.2 Requirement
 Python version >= 3.8
 ```
-pip install scipy shapely pyomo cvxopt
+pip install -r requriements.txt
 
 conda install -c conda-forge ipopt
 ```
@@ -68,10 +62,15 @@ The Case1.csv is provided by https://www.tpcap.net/#/benchmarks, and the details
 
 ## 2. Usage
 run the main.py to show the animation process
+```
+python main.py
+```
+
+The solution of the trajectory is stored as a .csv file and its column name is `[x,y,theta,v,a,sigma,omega,t]`
+
+The aniamation pictures including gif and png is stored in the pictures folder.
 
 ## 3. Todo List
  
 - [ ] more spine function
 - [ ] more velocity plan function
-- [ ] store the trajectory data 
-

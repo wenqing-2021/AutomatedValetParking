@@ -2,9 +2,9 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-10-31
-FilePath: /HybridAstar/collision_check/collision_check.py
-Description: provide two-circle check and distance check
+LastEditTime: 2022-11-06
+FilePath: /Automated Valet Parking/collision_check/collision_check.py
+Description: collision check
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
 '''
