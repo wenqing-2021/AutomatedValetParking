@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-02
+LastEditTime: 2022-11-06
 FilePath: /HybridAstar/animation/animation.py
 Description: animation for the final trajectory
 
@@ -12,14 +12,17 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from map.costmap import Vehicle, _map
 
 class ploter:
 
     @staticmethod
-    def plot_obstacles(map:_map):
+    def plot_obstacles(map:_map, fig_id=None):
         plt.ion()
-        plt.figure(1)
+        if fig_id == None:
+            fig_id = 1
+        plt.figure(fig_id)
         # create original map
         ## create obstacles
         for j in range(0, map.case.obs_num):
@@ -56,8 +59,7 @@ class ploter:
         plt.draw()
 
     @staticmethod
-    def plot_path(x,y,color='grey',label=None):
-        plt.figure(1)
+    def plot_curve(x,y,color='grey',label=None):
         plt.plot(x,y,'-',linewidth=0.8,color=color,label=label)
         plt.draw()
 
@@ -65,20 +67,22 @@ class ploter:
     def plot_final_path(path, color='green', show_car=False, label:str=None):
         x,y=[],[]
         v = Vehicle()
+        fig1 = plt.figure(1, dpi=600, figsize=(16,12))
+        
         for i in range(len(path)):
             x.append(path[i][0])
             y.append(path[i][1])
             if i == 0:
-                ploter.plot_path(x,y,color,label)
+                ploter.plot_curve(x,y,color,label)
             else:
-                ploter.plot_path(x,y,color)
+                ploter.plot_curve(x,y,color)
             if show_car:
                 points = v.create_polygon(path[i][0], path[i][1], path[i][2])
-                plt.plot(points[:, 0], points[:, 1], linestyle='--', linewidth = 0.4, color = color)
+                plt.plot(points[:, 0], points[:, 1], linestyle='-', linewidth = 0.4, color = color)
             plt.draw()
             plt.pause(0.1)
         
-        plt.show()
+        # plt.show()
 
     @staticmethod
     def plot_collision_p(x,y,theta,map):
@@ -102,5 +106,27 @@ class ploter:
         axes.add_artist(c2)
 
         plt.draw()
+    
+    @staticmethod
+    def save_gif(path, color='green', show_car=False, save_gif_name=None, map=None):
+        fig = plt.figure(2, dpi=300, figsize=(40,30))
+        ploter.plot_obstacles(map=map, fig_id=2)
+        x,y=[],[]
+        v = Vehicle()
+        imgs_list = []
+        for i in range(len(path)):
+            x.append(path[i][0])
+            y.append(path[i][1])
+            path_imgs = plt.plot(x,y,'-',linewidth=0.8,color=color)
+            if show_car:
+                points = v.create_polygon(path[i][0], path[i][1], path[i][2])
+                car_imgs = plt.plot(points[:, 0], points[:, 1], linestyle='-', linewidth = 0.4, color = color)
+                imgs_list.append(car_imgs)
+            plt.draw()
+            plt.pause(0.1)
+        
+        ani = animation.ArtistAnimation(fig=fig, artists=imgs_list, interval=10,repeat_delay=1000)
+        ani.save(save_gif_name, writer='pillow', fps=30)
+        plt.close(fig)
 
     

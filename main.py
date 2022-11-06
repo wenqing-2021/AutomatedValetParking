@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-04
+LastEditTime: 2022-11-06
 FilePath: /HybridAstar/main.py
 Description: the main file of the hybrid a star algorithm for parking
 
@@ -25,20 +25,8 @@ import copy
 
 import argparse
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='hybridAstar')
-    parser.add_argument("--config_name", type=str, default="config")
-    parser.add_argument("--case_name", type=str, default="Case1")
-    args = parser.parse_args()
 
-    # initial
-    # load configure file to a dict
-    config = read_config.read_config(config_name=args.config_name)
-
-    # read benchmark case
-    case_name = args.case_name + '.csv'
-    file = os.path.join(config['Benchmark_path'], case_name)
-
+def main(file, config):
     # create the park map
     park_map = costmap._map(
         file=file, discrete_size=config['map_discrete_size'])
@@ -112,7 +100,7 @@ if __name__ == '__main__':
     # animation
     print('trajectory_time:', optimal_tf)
     ploter.plot_obstacles(map=park_map)
-    park_map.visual_cost_map()
+    # park_map.visual_cost_map()
     ploter.plot_final_path(path=original_path, label='Hybrid A*',
                            color='green', show_car=False)
     ploter.plot_final_path(path=final_opt_path, label='Optimized Path',
@@ -128,5 +116,26 @@ if __name__ == '__main__':
         os.makedirs(fig_path)
     save_fig = os.path.join(fig_path, fig_name)
     plt.savefig(save_fig, dpi=600)
-    plt.show()
+    plt.close()
+    gif_name = args.case_name + '.gif'
+    save_gif_name = os.path.join(fig_path, gif_name)
+    ploter.save_gif(path=final_ocp_path, color='gray', map=park_map,
+                    show_car=True, save_gif_name=save_gif_name)
     print('solved')
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='hybridAstar')
+    parser.add_argument("--config_name", type=str, default="config")
+    parser.add_argument("--case_name", type=str, default="Case1")
+    args = parser.parse_args()
+
+    # initial
+    # load configure file to a dict
+    config = read_config.read_config(config_name=args.config_name)
+
+    # read benchmark case
+    case_name = args.case_name + '.csv'
+    file = os.path.join(config['Benchmark_path'], case_name)
+
+    main(file=file, config=config)
