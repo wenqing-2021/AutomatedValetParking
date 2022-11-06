@@ -43,7 +43,7 @@ Hybrid A star -> Path optimization -> Cubic interpolation -> Velocity plan -> So
 ### 1.2 Requirement
 Python version >= 3.8
 ```
-pip install -r requriements.txt
+pip install -r requirements.txt
 
 conda install -c conda-forge ipopt
 ```
