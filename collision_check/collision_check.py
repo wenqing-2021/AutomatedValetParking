@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-08
 FilePath: /Automated Valet Parking/collision_check/collision_check.py
 Description: collision check
 
@@ -14,12 +14,12 @@ from abc import abstractmethod
 from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
-from map.costmap import _map, Vehicle
+from map.costmap import Map, Vehicle
 
 
 class collision_checker:
     def __init__(self,
-                 map: _map,
+                 map: Map,
                  vehicle: Vehicle = None,
                  config: dict = None) -> None:
         self.map = map
@@ -82,7 +82,7 @@ class two_circle_checker(collision_checker):
     use two circle to present car body for collision check
     '''
 
-    def __init__(self, map: _map, vehicle: Vehicle = None, config: dict = None) -> None:
+    def __init__(self, map: Map, vehicle: Vehicle = None, config: dict = None) -> None:
         super().__init__(map, vehicle, config)
 
     def check(self, node_x, node_y, theta) -> bool:
@@ -138,7 +138,7 @@ class two_circle_checker(collision_checker):
 
 
 class distance_checker(collision_checker):
-    def __init__(self, map: _map, vehicle: Vehicle = None, config: dict = None) -> None:
+    def __init__(self, map: Map, vehicle: Vehicle = None, config: dict = None) -> None:
         super().__init__(map, vehicle, config)
 
     def check(self, node_x, node_y, theta) -> bool:

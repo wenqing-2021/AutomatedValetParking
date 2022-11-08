@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-08
 FilePath: /Automated Valet Parking/path_planner/path_planner.py
 Description: path plan
 
@@ -17,7 +17,7 @@ from typing import Dict, Tuple, List
 
 from path_planner.hybrid_a_star import hybrid_a_star
 from animation.animation import ploter
-from map.costmap import Vehicle, _map
+from map.costmap import Vehicle, Map
 from collision_check import collision_check
 from path_planner.rs_curve import PATH
 
@@ -25,7 +25,7 @@ from path_planner.rs_curve import PATH
 class path_planner:
     def __init__(self,
                  config: dict = None,
-                 map: _map = None,
+                 map: Map = None,
                  vehicle: Vehicle = None) -> None:
         self.config = config
         self.map = map

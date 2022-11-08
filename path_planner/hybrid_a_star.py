@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-08
 FilePath: /Automated Valet Parking/path_planner/hybrid_a_star.py
 Description: hybrid a star 
 
@@ -12,7 +12,7 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 import numpy as np
 import math
 import queue
-from map.costmap import _map, Vehicle
+from map.costmap import Map, Vehicle
 from collision_check import collision_check
 from path_planner.compute_h import Dijkstra
 from path_planner import rs_curve
@@ -71,7 +71,7 @@ class Node:
 class hybrid_a_star:
     def __init__(self,
                  config: dict,
-                 park_map: _map,
+                 park_map: Map,
                  vehicle: Vehicle) -> None:
 
         # create vehicle

@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-08
 FilePath: /Automated Valet Parking/interpolation/path_interpolation.py
 Description: interpolation for the optimized path
 
@@ -143,15 +143,27 @@ class interpolation:
             theta_angle = pi_2_pi(theta_angle)
             insert_path[i+1][2] = theta_angle
 
-        # corect the theta angle
+        # check the continuity of the theta angle
+        # for i in range(len(insert_path)-1):
+        #     if abs(insert_path[i+1][2] - insert_path[i][2]) <= np.pi:
+        #         continue
+        #     else:
+        #         while insert_path[i+1][2] - insert_path[i][2] > np.pi:
+        #             insert_path[i+1][2] -= np.pi
+        #         while insert_path[i+1][2] - insert_path[i][2] < np.pi:
+        #             insert_path[i+1][2] += np.pi
+
+        # check the theta continuity
         for i in range(len(insert_path)-1):
-            if abs(insert_path[i+1][2] - insert_path[i][2]) <= np.pi:
+            if abs(insert_path[i][2] - insert_path[i+1][2]) <= math.pi:
                 continue
             else:
-                while insert_path[i+1][2] - insert_path[i][2] > np.pi:
-                    insert_path[i+1][2] -= np.pi
-                while insert_path[i+1][2] - insert_path[i][2] < np.pi:
-                    insert_path[i+1][2] += np.pi
+                if (insert_path[i+1][2] - insert_path[i][2]) < 0:
+                    while (insert_path[i+1][2] - insert_path[i][2]) < -math.pi:
+                        insert_path[i+1][2] += 2*math.pi
+                else:
+                    while (insert_path[i+1][2] - insert_path[i][2]) > math.pi:
+                        insert_path[i+1][2] -= 2*math.pi
 
         # compute steering angle and check the theta
         for i in range(len(insert_path) - 1):

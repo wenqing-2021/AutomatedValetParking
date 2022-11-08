@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-09
 FilePath: /Automated Valet Parking/main.py
 Description: the main file of the hybrid a star algorithm for parking
 
@@ -19,16 +19,14 @@ from interpolation import path_interpolation
 from optimization import path_optimazition, ocp_optimization
 from config import read_config
 
-import yaml
 import os
-import copy
 
 import argparse
 
 
 def main(file, config):
     # create the park map
-    park_map = costmap._map(
+    park_map = costmap.Map(
         file=file, discrete_size=config['map_discrete_size'])
 
     # create vehicle
@@ -100,7 +98,7 @@ def main(file, config):
     # animation
     print('trajectory_time:', optimal_tf)
     ploter.plot_obstacles(map=park_map)
-    # park_map.visual_cost_map()
+    park_map.visual_cost_map()
     ploter.plot_final_path(path=original_path, label='Hybrid A*',
                            color='green', show_car=False)
     ploter.plot_final_path(path=final_opt_path, label='Optimized Path',
@@ -127,7 +125,7 @@ def main(file, config):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='hybridAstar')
     parser.add_argument("--config_name", type=str, default="config")
-    parser.add_argument("--case_name", type=str, default="Case1")
+    parser.add_argument("--case_name", type=str, default="Case5")
     args = parser.parse_args()
 
     # initial

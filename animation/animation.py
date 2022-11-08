@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-08
 FilePath: /Automated Valet Parking/animation/animation.py
 Description: animation for the solving process
 
@@ -14,12 +14,12 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from map.costmap import Vehicle, _map
+from map.costmap import Vehicle, Map
 
 class ploter:
 
     @staticmethod
-    def plot_obstacles(map:_map, fig_id=None):
+    def plot_obstacles(map:Map, fig_id=None):
         plt.ion()
         if fig_id == None:
             fig_id = 1

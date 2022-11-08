@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-09
 FilePath: /Automated Valet Parking/optimization/ocp_optimization.py
 Description: use ipopt to solve the optimization problem
 
@@ -11,9 +11,9 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 
 
 from __future__ import division
-from map.costmap import _map, Vehicle
+from map.costmap import Map, Vehicle
 import math
-import copy
+from path_planner import rs_curve
 import numpy as np
 
 import pyomo.environ as pyo
@@ -25,7 +25,7 @@ Lw = 2.8
 
 class ocp_optimization:
     def __init__(self,
-                 park_map: _map,
+                 park_map: Map,
                  vehicle: Vehicle,
                  config: dict) -> None:
         self.config = config
@@ -46,7 +46,7 @@ class ocp_optimization:
         '''
 
         # get near obstacles and vehicle
-        def get_near_obstacles(node_x, node_y, theta, map: _map, config):
+        def get_near_obstacles(node_x, node_y, theta, map: Map, config):
             '''
             this function is only used for distance check method
             return the obstacles x and y, vehicle boundary
@@ -129,7 +129,7 @@ class ocp_optimization:
         Y_min = []
         # create AABB boundary and get the near obstacles position
         for p in original_path:
-            x, y, theta = p[0], p[1], p[2]
+            x, y, theta = p[0], p[1], rs_curve.pi_2_pi(p[2])
             near_obstacles_range, vehicle_boundary = get_near_obstacles(node_x=x, node_y=y,
                                                                         theta=theta, map=self.map, config=self.config)
             # compute k and b
@@ -521,7 +521,7 @@ class ocp_optimization:
                 y_bounds = (y_min[k], y_max[k])
                 return y_bounds
             elif (i-2) % 7 == 0:
-                theta_bounds = (-3.1415926, 3.1415926)
+                theta_bounds = (2*-3.1415926, 2*3.1415926)
                 return theta_bounds
             elif (i-3) % 7 == 0:
                 if i == 3:
@@ -630,9 +630,13 @@ class ocp_optimization:
             if index % 7 == 0 and index > 0:
                 optimal_traj.append(points)
                 points = []
-            points.append(pyo.value(model.variables[index]))
-            print('solution', index)
-            print(pyo.value(model.variables[index]))
+            if (index-2) % 7 == 0:
+                _theta = rs_curve.pi_2_pi(pyo.value(model.variables[index]))
+                points.append(_theta)
+            else:
+                points.append(pyo.value(model.variables[index]))
+            # print('solution', index)
+            # print(pyo.value(model.variables[index]))
 
         optimal_traj.append(points)
 

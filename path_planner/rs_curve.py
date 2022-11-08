@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-08
 FilePath: /Automated Valet Parking/path_planner/rs_curve.py
 Description: rs curve for hybrid a star
 
@@ -13,7 +13,7 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from map.costmap import _map
+
 
 '''
 This file is surrported by this repo:https://github.com/zhm-real/CurvesGenerator

@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-08
 FilePath: /Automated Valet Parking/optimization/path_optimazition.py
 Description: smooth the initial path 
 
@@ -14,13 +14,13 @@ from typing import List
 import numpy as np
 import math
 from cvxopt import matrix, solvers
-from map.costmap import _map, Vehicle
+from map.costmap import Map, Vehicle
 import scipy.spatial as spatial
 
 
 class path_opti:
     def __init__(self,
-                 park_map: _map,
+                 park_map: Map,
                  vehicle: Vehicle,
                  config: dict) -> None:
         self.original_path = None
@@ -232,7 +232,7 @@ class path_opti:
 
         # get near obstacles and vehicle
 
-        def get_near_obstacles(node_x, node_y, theta, map: _map, config):
+        def get_near_obstacles(node_x, node_y, theta, map: Map, config):
             '''
             this function is only used for distance check method
             return the obstacles x and y, vehicle boundary

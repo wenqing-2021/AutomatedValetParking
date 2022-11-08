@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-08
 FilePath: /Automated Valet Parking/map/costmap.py
 Description: generate cost map
 
@@ -156,7 +156,7 @@ class Case:
         return case
 
 
-class _map:
+class Map:
     def __init__(self,
                  discrete_size: np.float64 = 0.1,
                  file: string = None) -> None:
