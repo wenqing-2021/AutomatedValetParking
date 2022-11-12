@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-08
+LastEditTime: 2022-11-11
 FilePath: /Automated Valet Parking/map/costmap.py
 Description: generate cost map
 
@@ -171,6 +171,8 @@ class Map:
                                   math.floor(self.case.ymin),
                                   math.floor(self.case.ymax)], dtype=np.float64)
         # self.detect_obstacle()
+        self._discrete_x = 0
+        self._discrete_y = 0
         self.detect_obstacle_edge()
 
     def discrete_map(self):
@@ -185,18 +187,22 @@ class Map:
         # create (x,y) position
         dx_position = np.linspace(self.boundary[0], self.boundary[1], x_index)
         dy_position = np.linspace(self.boundary[2], self.boundary[3], y_index)
+        self._discrete_x = dx_position[1] - dx_position[0]
+        self._discrete_y = dy_position[1] - dy_position[0]
         # the position of each point in the park map
         self.map_position = (dx_position, dy_position)
         # create grid index
         self.grid_index_max = x_index*y_index
 
     def detect_obstacle_edge(self):
+        # just consider the boundary of the obstacles
         # discrete map
         self.discrete_map()
 
         # get obstacles edge
         for i in range(0, self.case.obs_num):
             old_obstacle = self.case.obs[i]
+            # delete redundant points
             obstacle = np.unique(old_obstacle, axis=0)
             obstacle_point_num = len(obstacle[:, 0])
             # sort the polygan point by counterclockwise direction
@@ -207,7 +213,7 @@ class Map:
             delta_x = obstacle[:, 0] - center_x
             delta_y = obstacle[:, 1] - center_y
             angle = np.arctan2(delta_y, delta_x) + np.pi
-            obstacle = obstacle[np.argsort(angle)]
+            obstacle = obstacle[np.argsort(angle)]  # sort the obstacle points
 
             for j in range(obstacle_point_num):
                 obstacle_p1 = [obstacle[j, 0], obstacle[j, 1]]
@@ -219,44 +225,20 @@ class Map:
                 # get rotate angle
                 vector_1 = [obstacle_p2[0]-obstacle_p1[0],
                             obstacle_p2[1]-obstacle_p1[1]]
-                vector_2 = [1, 0]
+
                 rotate_angle = np.arctan2(vector_1[1], vector_1[0])
-
-                # while rotate_angle > math.pi:
-                #     rotate_angle -= 2.0 * math.pi
-
-                # while rotate_angle < -math.pi:
-                #     rotate_angle += 2.0 * math.pi
-                # # First Quadrant
-                # if vector_1[0] > 0 and vector_1[1] >= 0:
-                #     if rotate_angle < 0:
-                #         rotate_angle += math.pi
-                # # Fourth Quadrant
-                # elif vector_1[0] > 0 and vector_1[1] <0:
-                #     if rotate_angle > 0:
-                #         rotate_angle -= math.pi
-
-                # # Third Quadrant
-                # elif vector_1[0] < 0 and vector_1[1] <0:
-                #     if rotate_angle > 0:
-                #         rotate_angle -= math.pi
-
-                # # Second Quadrant
-                # elif vector_1[0] < 0 and vector_1[1] > 0:
-                #     if rotate_angle < 0:
-                #         rotate_angle += math.pi
 
                 rotation_matrix = np.array([[np.cos(rotate_angle), np.sin(rotate_angle)],
                                             [-np.sin(rotate_angle), np.cos(rotate_angle)]])
 
                 translate_matrix = np.array(vector_1).reshape([2, 1])
-                # _test_obstacle_p2 = np.dot(rotation_matrix, translate_matrix)
+
                 new_obstacle_p2 = np.dot(rotation_matrix, translate_matrix)[
                     0].tolist()
 
                 # get positions of points on the edge
                 points_num = math.floor(
-                    new_obstacle_p2[0] / self.discrete_size)
+                    new_obstacle_p2[0] / self._discrete_x)
                 points_y = np.zeros(points_num)
                 points_x = np.linspace(0, new_obstacle_p2[0], points_num)
                 points_position = np.vstack((points_x, points_y))
@@ -269,10 +251,10 @@ class Map:
                                                 _points_position[1][k]+obstacle_p1[1]]
 
                     points_x_index = np.where((self.map_position[0] < original_points_position[0]) &
-                                              (self.map_position[0] > (original_points_position[0]-self.discrete_size)))
+                                              (self.map_position[0] > (original_points_position[0]-self._discrete_x)))
 
                     points_y_index = np.where((self.map_position[1] < original_points_position[1]) &
-                                              (self.map_position[1] > (original_points_position[1]-self.discrete_size)))
+                                              (self.map_position[1] > (original_points_position[1]-self._discrete_y)))
 
                     if any(points_x_index) and any(points_y_index):
                         self.cost_map[int(points_x_index[0])
@@ -341,7 +323,7 @@ class Map:
         param: the upper right corner of the grid position
         return: the index of this grid, its range is from 1 to x_index*y_index
         '''
-        index_0 = round((grid_x - self.boundary[0]) / self.discrete_size)
-        index_1 = round((self.boundary[3] - grid_y) / self.discrete_size) * (
-            int((self.boundary[1] - self.boundary[0]) / self.discrete_size))
+        index_0 = math.floor((grid_x - self.boundary[0]) / self._discrete_x)
+        index_1 = math.floor((self.boundary[3] - grid_y) / self._discrete_y) * (
+            int((self.boundary[1] - self.boundary[0]) / self._discrete_x))
         return index_0 + index_1
