@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-09
+LastEditTime: 2022-11-11
 FilePath: /Automated Valet Parking/optimization/ocp_optimization.py
 Description: use ipopt to solve the optimization problem
 
@@ -564,17 +564,20 @@ class ocp_optimization:
             input: x, y, theta, v, a, delta, w, ..., tf
             '''
             expr = 0
-            expr = model.variables[variable_n-1]
+            expr = self.config['cost_time'] * model.variables[variable_n-1]
             # print(len(model.variables))
             for i in range(variable_n):
                 if (i-4) % 7 == 0:
-                    expr += model.variables[i] ** 2
+                    expr += self.config['cost_acceleration'] * \
+                        model.variables[i] ** 2
                 elif (i-3) % 7 == 0:
-                    expr += model.variables[i] ** 2
+                    expr += self.config['cost_velocity'] * \
+                        model.variables[i] ** 2
                 elif (i-5) % 7 == 0:
-                    expr += model.variables[i] ** 2
+                    expr += self.config['cost_steering_angle'] * \
+                        model.variables[i] ** 2
                 elif (i-6) % 7 == 0:
-                    expr += model.variables[i] ** 2
+                    expr += self.config['cost_omega'] * model.variables[i] ** 2
             return expr
 
         model.obj1 = pyo.Objective(rule=objective, sense=pyo.minimize)

@@ -7,6 +7,11 @@
   flag_radius: 18 # m (in this circle area, we use rs curve to connect goal pose)
   extended_num: 1 # extend point at the end of orignal path
 
+## hybrid cost
+  cost_gear: 1
+  cost_heading_change: 0.5
+  cost_scale: 10
+
 ## collision check
   safe_side_dis: 0.1 # m
   safe_fr_dis: 0.1 # m
@@ -28,6 +33,13 @@
   # velocity plan points
   velocity_plan_num: 100 # num
 
+## ocp optimization
+  # cost coefficient for steering angle
+  cost_steering_angle: 10
+  cost_omega: 10
+  cost_acceleration: 10
+  cost_velocity: 10
+  cost_time: 100
 
 ## save info
   # save path
