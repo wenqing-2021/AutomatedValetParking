@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-08
+LastEditTime: 2022-11-11
 FilePath: /Automated Valet Parking/path_planner/hybrid_a_star.py
 Description: hybrid a star 
 
@@ -250,27 +250,31 @@ class hybrid_a_star:
         cost_gear = 0
         gear = node.forward
         if gear != father_gear:
-            cost_gear = 1
+            cost_gear = self.config['cost_gear']
 
         cost_heading = abs(node.theta - father_theta)
 
-        cost = cost_gear + 0.5 * cost_heading
+        cost = cost_gear + self.config['cost_heading_change'] * cost_heading
 
-        return 10 * cost
+        return self.config['cost_scale'] * cost
 
     def calc_node_heuristic(self, current_node: Node) -> np.float64:
         '''
         We use Dijkstra algorithm and RS curve length to calculate the heuristic value 
         '''
         # convert node to grid
-        grid_x = np.float64("%.1f" % (current_node.x + 0.05))
-        grid_y = np.float64("%.1f" % (current_node.y + 0.05))
+        # grid_x = np.float64("%.1f" % (current_node.x + 0.05))
+        # grid_y = np.float64("%.1f" % (current_node.y + 0.05))
+        _grid_id = self.park_map.convert_position_to_index(grid_x=current_node.x,
+                                                           grid_y=current_node.y)
         h_value = 0
         find_grid = False
         for i in range(len(self.h_value_list)):
-            find_x = self.h_value_list[i].grid_x == grid_x
-            find_y = self.h_value_list[i].grid_y == grid_y
-            if find_x and find_y:
+            # find_x = self.h_value_list[i].grid_x == grid_x
+            # find_y = self.h_value_list[i].grid_y == grid_y
+            find_id = self.h_value_list[i].grid_id == _grid_id
+            # if find_x and find_y:
+            if find_id:
                 find_grid = True
                 h_value_1 = self.h_value_list[i].distance
                 break

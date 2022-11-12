@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
+LastEditTime: 2022-11-11
 FilePath: /Automated Valet Parking/path_planner/compute_h.py
 Description: compute the heuristic value use dijkstra
 
@@ -14,6 +14,7 @@ from matplotlib.pyplot import grid
 import numpy as np
 import queue
 import math
+from map.costmap import Map
 
 
 class Grid:
@@ -38,11 +39,11 @@ class Grid:
 
 
 class Dijkstra:
-    def __init__(self, map) -> None:
+    def __init__(self, map: Map) -> None:
         self.map = map
         self.final_point = (map.case.xf, map.case.yf, map.case.thetaf)
         self.open_list = queue.PriorityQueue()
-        self.closedlist = []
+        self.closedlist = []  # store Class Grid
         self.openlist_index = []
         self.find_terminate = False
 
@@ -54,10 +55,10 @@ class Dijkstra:
         # we set final node as the initial grid
         # and our goal is to find the distance(priority)
         # between the current node(terminate node) and the final node.
-        initial_grid_x = np.float64("%.1f" % (self.final_point[0] + 0.05))
-        initial_grid_y = np.float64("%.1f" % (self.final_point[1] + 0.05))
-        terminate_grid_x = np.float64("%.1f" % (node_x + 0.05))
-        terminate_grid_y = np.float64("%.1f" % (node_y + 0.05))
+        initial_grid_x = np.float64(self.final_point[0])
+        initial_grid_y = np.float64(self.final_point[1])
+        terminate_grid_x = np.float64(node_x)
+        terminate_grid_y = np.float64(node_y)
         # initialize openlist and closedlist
         initial_grid_id = self.map.convert_position_to_index(initial_grid_x,
                                                              initial_grid_y)
@@ -85,13 +86,13 @@ class Dijkstra:
         for i in range(8):
             # left upper grid
             if i == 0:
-                grid_x = round(current_grid.grid_x - self.map.discrete_size, 1)
-                grid_y = round(current_grid.grid_y + self.map.discrete_size, 1)
+                grid_x = current_grid.grid_x - self.map._discrete_x
+                grid_y = current_grid.grid_y + self.map._discrete_y
                 # check is obstacle
                 if self.is_obstacle(grid_x, grid_y):
                     continue
                 # check the grid whether in the map
-                if grid_x > self.map.boundary[0] and \
+                if grid_x >= self.map.boundary[0] and \
                    grid_y <= self.map.boundary[3]:
                     priority = current_grid.distance + 14
                     self.add_grid_to_openlist(gridx=grid_x, gridy=grid_y,
@@ -100,8 +101,8 @@ class Dijkstra:
 
             # upper grid
             if i == 1:
-                grid_x = round(current_grid.grid_x, 1)
-                grid_y = round(current_grid.grid_y + self.map.discrete_size, 1)
+                grid_x = current_grid.grid_x
+                grid_y = current_grid.grid_y + self.map._discrete_y
                 # check is obstacle
                 if self.is_obstacle(grid_x, grid_y):
                     continue
@@ -114,8 +115,8 @@ class Dijkstra:
 
             # right upper grid
             if i == 2:
-                grid_x = round(current_grid.grid_x + self.map.discrete_size, 1)
-                grid_y = round(current_grid.grid_y + self.map.discrete_size, 1)
+                grid_x = current_grid.grid_x + self.map._discrete_x
+                grid_y = current_grid.grid_y + self.map._discrete_y
                 if self.is_obstacle(grid_x, grid_y):
                     continue
                 # check the grid whether in the map
@@ -128,12 +129,12 @@ class Dijkstra:
 
             # left grid
             if i == 3:
-                grid_x = round(current_grid.grid_x - self.map.discrete_size, 1)
-                grid_y = round(current_grid.grid_y, 1)
+                grid_x = current_grid.grid_x - self.map._discrete_x
+                grid_y = current_grid.grid_y
                 if self.is_obstacle(grid_x, grid_y):
                     continue
                 # check the grid whether in the map
-                if grid_x > self.map.boundary[0]:
+                if grid_x >= self.map.boundary[0]:
                     priority = current_grid.distance + 10
                     self.add_grid_to_openlist(gridx=grid_x, gridy=grid_y,
                                               priority=priority,
@@ -141,8 +142,8 @@ class Dijkstra:
 
             # right grid
             if i == 4:
-                grid_x = round(current_grid.grid_x + self.map.discrete_size, 1)
-                grid_y = round(current_grid.grid_y, 1)
+                grid_x = current_grid.grid_x + self.map._discrete_x
+                grid_y = current_grid.grid_y
                 if self.is_obstacle(grid_x, grid_y):
                     continue
                 # check the grid whether in the map
@@ -154,13 +155,13 @@ class Dijkstra:
 
             # left bottom grid
             if i == 5:
-                grid_x = round(current_grid.grid_x - self.map.discrete_size, 1)
-                grid_y = round(current_grid.grid_y - self.map.discrete_size, 1)
+                grid_x = current_grid.grid_x - self.map._discrete_x
+                grid_y = current_grid.grid_y - self.map._discrete_y
                 if self.is_obstacle(grid_x, grid_y):
                     continue
                 # check the grid whether in the map
-                if grid_x > self.map.boundary[0] and \
-                   grid_y > self.map.boundary[2]:
+                if grid_x >= self.map.boundary[0] and \
+                   grid_y >= self.map.boundary[2]:
                     priority = current_grid.distance + 14
                     self.add_grid_to_openlist(gridx=grid_x, gridy=grid_y,
                                               priority=priority,
@@ -168,12 +169,12 @@ class Dijkstra:
 
             # bottom grid
             if i == 6:
-                grid_x = round(current_grid.grid_x, 1)
-                grid_y = round(current_grid.grid_y - self.map.discrete_size, 1)
+                grid_x = current_grid.grid_x
+                grid_y = current_grid.grid_y - self.map._discrete_y
                 if self.is_obstacle(grid_x, grid_y):
                     continue
                 # check the grid whether in the map
-                if grid_y > self.map.boundary[2]:
+                if grid_y >= self.map.boundary[2]:
                     priority = current_grid.distance + 10
                     self.add_grid_to_openlist(gridx=grid_x, gridy=grid_y,
                                               priority=priority,
@@ -181,13 +182,13 @@ class Dijkstra:
 
             # right bottom grid
             if i == 7:
-                grid_x = round(current_grid.grid_x + self.map.discrete_size, 1)
-                grid_y = round(current_grid.grid_y - self.map.discrete_size, 1)
+                grid_x = current_grid.grid_x + self.map._discrete_x
+                grid_y = current_grid.grid_y - self.map._discrete_y
                 if self.is_obstacle(grid_x, grid_y):
                     continue
                 # check the grid whether in the map
                 if grid_x <= self.map.boundary[1] and \
-                   grid_y > self.map.boundary[2]:
+                   grid_y >= self.map.boundary[2]:
                     priority = current_grid.distance + 14
                     self.add_grid_to_openlist(gridx=grid_x, gridy=grid_y,
                                               priority=priority,
@@ -224,7 +225,6 @@ class Dijkstra:
                     if pre_priority > priority:
                         self.open_list.queue[i].distance = priority
                         self.open_list.queue[i].father_id = father_id
-                        self.open_list.queue[i].distance = priority
                     break
         else:
             grid_node = Grid(grid_id=index, grid_x=gridx,
@@ -236,14 +236,14 @@ class Dijkstra:
 
     def is_obstacle(self, grid_x, grid_y):
         # check collision
-        x_index = round(
-            (grid_x - self.map.boundary[0]) / self.map.discrete_size) - 1
-        y_index = round(
-            (grid_y - self.map.boundary[2]) / self.map.discrete_size) - 1
+        x_index = math.floor(
+            (grid_x - self.map.boundary[0]) / self.map._discrete_x) - 1
+        y_index = math.floor(
+            (grid_y - self.map.boundary[2]) / self.map._discrete_y) - 1
         max_x_index = int(
-            (self.map.boundary[1] - self.map.boundary[0]) / self.map.discrete_size)
+            (self.map.boundary[1] - self.map.boundary[0]) / self.map._discrete_x)
         max_y_index = int(
-            (self.map.boundary[3] - self.map.boundary[2]) / self.map.discrete_size)
+            (self.map.boundary[3] - self.map.boundary[2]) / self.map._discrete_y)
         if x_index >= max_x_index:
             x_index = max_x_index - 1
         if y_index >= max_y_index:
