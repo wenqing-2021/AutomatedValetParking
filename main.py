@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-09
+LastEditTime: 2022-11-12
 FilePath: /Automated Valet Parking/main.py
 Description: the main file of the hybrid a star algorithm for parking
 
@@ -10,11 +10,11 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 '''
 
 
-from path_planner import path_planner
+from path_plan import path_planner
 from animation.animation import ploter, plt
 from animation.record_solution import DataRecorder
 from map import costmap
-from velocity_planner import velocity_plan
+from velocity_plan import velocity_planner
 from interpolation import path_interpolation
 from optimization import path_optimazition, ocp_optimization
 from config import read_config
@@ -33,9 +33,9 @@ def main(file, config):
     ego_vehicle = costmap.Vehicle()
 
     # create path planner
-    planner = path_planner.path_planner(config=config,
-                                        map=park_map,
-                                        vehicle=ego_vehicle)
+    planner = path_planner.PathPlanner(config=config,
+                                       map=park_map,
+                                       vehicle=ego_vehicle)
 
     # create path optimizer
     path_optimizer = path_optimazition.path_opti(park_map, ego_vehicle, config)
@@ -45,8 +45,8 @@ def main(file, config):
         config=config, map=park_map, vehicle=ego_vehicle)
 
     # create velocity planner
-    velocity_planner = velocity_plan.velocity_planner(vehicle=ego_vehicle,
-                                                      velocity_func_type=config['velocity_func_type'])
+    v_planner = velocity_planner.VelocityPlanner(vehicle=ego_vehicle,
+                                                 velocity_func_type=config['velocity_func_type'])
 
     # create path optimization planner
     ocp_planner = ocp_optimization.ocp_optimization(
@@ -70,7 +70,7 @@ def main(file, config):
         path_arc_length, path_i_info = interplotor.cubic_fitting(opti_path)
 
         # velocity planning
-        v_acc_func, terminiate_time = velocity_planner.solve_nlp(
+        v_acc_func, terminiate_time = v_planner.solve_nlp(
             arc_length=path_arc_length)
 
         # insert points
@@ -125,7 +125,7 @@ def main(file, config):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='hybridAstar')
     parser.add_argument("--config_name", type=str, default="config")
-    parser.add_argument("--case_name", type=str, default="Case5")
+    parser.add_argument("--case_name", type=str, default="Case8")
     args = parser.parse_args()
 
     # initial

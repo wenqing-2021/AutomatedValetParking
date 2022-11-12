@@ -2,8 +2,8 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-11
-FilePath: /Automated Valet Parking/path_planner/hybrid_a_star.py
+LastEditTime: 2022-11-12
+FilePath: /Automated Valet Parking/path_plan/hybrid_a_star.py
 Description: hybrid a star 
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
@@ -14,8 +14,8 @@ import math
 import queue
 from map.costmap import Map, Vehicle
 from collision_check import collision_check
-from path_planner.compute_h import Dijkstra
-from path_planner import rs_curve
+from path_plan.compute_h import Dijkstra
+from path_plan import rs_curve
 from animation.animation import *
 
 

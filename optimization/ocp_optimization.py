@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-11
+LastEditTime: 2022-11-12
 FilePath: /Automated Valet Parking/optimization/ocp_optimization.py
 Description: use ipopt to solve the optimization problem
 
@@ -13,7 +13,7 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 from __future__ import division
 from map.costmap import Map, Vehicle
 import math
-from path_planner import rs_curve
+from path_plan import rs_curve
 import numpy as np
 
 import pyomo.environ as pyo

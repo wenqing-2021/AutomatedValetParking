@@ -2,8 +2,8 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-06
-FilePath: /Automated Valet Parking/velocity_planner/velocity_plan.py
+LastEditTime: 2022-11-12
+FilePath: /Automated Valet Parking/velocity_plan/velocity_planner.py
 Description: velocity planner for the path
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
@@ -112,7 +112,7 @@ class sin_func(velocity_func_base):
         return cons
 
 
-class velocity_planner:
+class VelocityPlanner:
     def __init__(self,
                  vehicle: Vehicle,
                  velocity_func_type: str = 'sin_func'):

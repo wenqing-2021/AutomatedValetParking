@@ -14,7 +14,7 @@ import math
 from typing import List, Dict, Tuple
 import numpy as np
 from scipy import integrate
-from path_planner.rs_curve import pi_2_pi
+from path_plan.rs_curve import pi_2_pi
 from animation.animation import *
 from util_math.spline import spine
 from util_math.coordinate_transform import coordinate_transform

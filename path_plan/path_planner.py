@@ -3,7 +3,7 @@ Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
 LastEditTime: 2022-11-08
-FilePath: /Automated Valet Parking/path_planner/path_planner.py
+FilePath: /Automated Valet Parking/path_plan/path_planner.py
 Description: path plan
 
 Copyright (c) 2022 by wenqing-hnu, All Rights Reserved. 
@@ -15,14 +15,14 @@ import numpy as np
 from scipy import spatial
 from typing import Dict, Tuple, List
 
-from path_planner.hybrid_a_star import hybrid_a_star
+from path_plan.hybrid_a_star import hybrid_a_star
 from animation.animation import ploter
 from map.costmap import Vehicle, Map
 from collision_check import collision_check
-from path_planner.rs_curve import PATH
+from path_plan.rs_curve import PATH
 
 
-class path_planner:
+class PathPlanner:
     def __init__(self,
                  config: dict = None,
                  map: Map = None,
