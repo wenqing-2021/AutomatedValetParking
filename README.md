@@ -13,7 +13,7 @@ Hybrid A star -> Path optimization -> Cubic interpolation -> Velocity plan -> So
 │   ├── animation.py
 │   └── record_solution.py
 ├── collision_check
-│   └── collision_check.py
+│   ├── collision_check.py
 ├── config
 │   ├── config.yaml
 │   └── read_config.py
@@ -21,23 +21,20 @@ Hybrid A star -> Path optimization -> Cubic interpolation -> Velocity plan -> So
 │   └── path_interpolation.py
 ├── main.py
 ├── map
-│   └── costmap.py
+│   ├── costmap.py
 ├── optimization
-│   ├── ipopt
 │   ├── ocp_optimization.py
 │   └── path_optimazition.py
-├── path_planner
+├── path_plan
 │   ├── compute_h.py
 │   ├── hybrid_a_star.py
 │   ├── path_planner.py
 │   └── rs_curve.py
-├── solution
-│   └── Solution_Case1.csv
 ├── util_math
 │   ├── coordinate_transform.py
 │   └── spline.py
-└── velocity_planner
-    └── velocity_plan.py
+└── velocity_plan
+    └── velocity_planner.py
 ```
 
 ### 1.2 Requirement
