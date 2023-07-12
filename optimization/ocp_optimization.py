@@ -1,8 +1,8 @@
 '''
 Author: wenqing-hnu
 Date: 2022-10-20
-LastEditors: wenqing-hnu
-LastEditTime: 2023-08-12
+LastEditors: wenqing-2021 yuansj@hnu.edu.cn
+LastEditTime: 2024-07-27 16:10:12
 FilePath: /Automated Valet Parking/optimization/ocp_optimization.py
 Description: use ipopt to solve the optimization problem
 
@@ -494,6 +494,30 @@ class ocp_optimization:
             sigma_1,omega_1,x_2,y_2,...,omega_n,tf]
         '''
         initial_solution = np.append(initial_path, tf_initial)
+        # check the input is feasible
+        for i in range(len(initial_solution)):
+            # velocity
+            if (i-3) % 7 == 0:
+                if (initial_solution[i] > 2.5):
+                    initial_solution[i] = 2.5
+                elif (initial_solution[i] < -2.5):
+                    initial_solution[i] = -2.5
+            elif (i-4) % 7 == 0:
+                if (initial_solution[i] > 1):
+                    initial_solution[i] = 1
+                elif (initial_solution[i] < -1):
+                    initial_solution[i] = -1
+            elif (i-5) % 7 == 0:
+                if (initial_solution[i] > 0.75):
+                    initial_solution[i] = 0.75
+                elif (initial_solution[i] < -0.75):
+                    initial_solution[i] = -0.75
+            elif (i-6) % 7 == 0:
+                if (initial_solution[i] > 0.5):
+                    initial_solution[i] = 0.5
+                elif (initial_solution[i] < -0.5):
+                    initial_solution[i] = -0.5
+        
         variable_n = len(initial_solution)
         points_n = int((variable_n - 1) / 7)
         final_pose_sin = math.sin(initial_solution[-6])
@@ -521,7 +545,7 @@ class ocp_optimization:
                 y_bounds = (y_min[k], y_max[k])
                 return y_bounds
             elif (i-2) % 7 == 0:
-                theta_bounds = (2*-3.1415926, 2*3.1415926)
+                theta_bounds = (-3.1415926, 3.1415926)
                 return theta_bounds
             elif (i-3) % 7 == 0:
                 if i == 3:
@@ -551,12 +575,12 @@ class ocp_optimization:
         model.variables[2].fix(initial_solution[2])
         model.variables[variable_n-8].fix(initial_solution[-8])
         model.variables[variable_n-7].fix(initial_solution[-7])
-        # model.variables[variable_n-6].fix(initial_solution[-6])
+        model.variables[variable_n-6].fix(initial_solution[-6])
         model.variables[variable_n-5].fix(0)
         model.variables[variable_n-4].fix(0)
         model.variables[variable_n-2].fix(0)
 
-        dt = model.variables[variable_n-1] / (points_n - 1)
+    
 
         def objective(model):
             '''
@@ -586,23 +610,26 @@ class ocp_optimization:
             if i < 7:
                 return pyo.Constraint.Skip
             elif i % 7 == 0:
-                delta_s = model.variables[i-4] * dt
-                delta_x = delta_s * pyo.cos(model.variables[i-5])
+                delta_s = model.variables[i-4] * model.variables[variable_n-1] / (points_n - 1)
+                # delta_x = delta_s * pyo.cos(model.variables[i-5])
+                delta_x = delta_s * (1- (1/2) * model.variables[i-5] ** 2)
                 # return abs(model.variables[i] - model.variables[i-7] - delta_x) <= 1e-6
                 return model.variables[i] == model.variables[i-7] + delta_x
             elif (i-1) % 7 == 0:
-                delta_s = model.variables[i-5] * dt
-                delta_y = delta_s * pyo.sin(model.variables[i-6])
+                delta_s = model.variables[i-5] * model.variables[variable_n-1] / (points_n - 1)
+                # delta_y = delta_s * pyo.sin(model.variables[i-6])
+                delta_y = delta_s * (model.variables[i-6] - (1/6) * model.variables[i-6] ** 3)
                 return model.variables[i] == model.variables[i-7] + delta_y
             elif (i-2) % 7 == 0:
-                delta_s = model.variables[i-6] * dt
-                delta_theta = delta_s * pyo.tan(model.variables[i-4]) / Lw
+                delta_s = model.variables[i-6] * model.variables[variable_n-1] / (points_n - 1)
+                # delta_theta = delta_s * pyo.tan(model.variables[i-4]) / Lw
+                delta_theta =delta_s * (model.variables[i-4] + (1/3) * model.variables[i-4] ** 3) / Lw
                 return model.variables[i] == model.variables[i-7] + delta_theta
             elif (i-3) % 7 == 0:
-                delta_v = model.variables[i-6] * dt
+                delta_v = model.variables[i-6] * model.variables[variable_n-1] / (points_n - 1)
                 return model.variables[i] == model.variables[i-7] + delta_v
             elif (i-5) % 7 == 0:
-                delta_sigma = model.variables[i-6] * dt
+                delta_sigma = model.variables[i-6] * model.variables[variable_n-1] / (points_n - 1)
                 return model.variables[i] == model.variables[i-7] + delta_sigma
             else:
                 return pyo.Constraint.Skip

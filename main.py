@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-2021 1140349586@qq.com
-LastEditTime: 2023-07-11 10:54:48
+LastEditTime: 2023-07-12 19:39:18
 FilePath: /Automated Valet Parking/main.py
 Description: the main file of the hybrid a star algorithm for parking
 
@@ -60,9 +60,11 @@ def main(file, config):
 
     # path planning
     optimal_tf = 0
+    pre_tf = 0
     t = 0
     optimal_time_info = []
     original_path, path_info, split_path = planner.path_planning()
+    final_pre_opt_path = []
     for path_i in split_path:
         # optimize path
         opti_path, forward = path_optimizer.get_result(path_i)
@@ -81,7 +83,9 @@ def main(file, config):
         # ocp problem solve
         ocp_traj, optimal_ti, optimal_dt = ocp_planner.solution(
             path=insert_path)
+        pre_tf += insert_path[-1][-1]
         optimal_time_info.append([optimal_ti, optimal_dt])
+        final_pre_opt_path.extend(insert_path)
         # add time information
         for ocp_i in ocp_traj:
             t += optimal_dt
@@ -92,12 +96,17 @@ def main(file, config):
         final_insert_path.extend(insert_path)
         final_ocp_path.extend(ocp_traj)
 
+    # print time
+    print('trajectory_time:', optimal_tf)
+    print('pre_optimization_time:', pre_tf)
+
     # save traj into a csv file
     DataRecorder.record(save_path=config['save_path'],
                         save_name=case_name, trajectory=final_ocp_path)
+    DataRecorder.record(save_path=config['save_path'] + '_preopt',
+                        save_name=case_name, trajectory=final_ocp_path)
 
     # animation
-    print('trajectory_time:', optimal_tf)
     ploter.plot_obstacles(map=park_map)
     park_map.visual_cost_map()
     ploter.plot_final_path(path=original_path, label='Hybrid A*',
@@ -126,8 +135,8 @@ def main(file, config):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='hybridAstar')
     parser.add_argument("--config_name", type=str, default="config")
-    parser.add_argument("--case_name", type=str, default="Case4")
-    parser.add_argument("--mode", type=int, default=0,
+    parser.add_argument("--case_name", type=str, default="Case2")
+    parser.add_argument("--mode", type=int, default=1,
                         help='0: solve this scenario, 1: load result and plot figure')
     args = parser.parse_args()
 
@@ -143,11 +152,12 @@ if __name__ == '__main__':
         main(file=file, config=config)
     elif (args.mode == 1):
         data_save_name = 'Solution_' + case_name
-        data_path = os.path.join(config['save_path'], data_save_name)
+        data_save_path = config['save_path']
 
         save_fig_path = os.path.join(config['pic_path'], args.case_name)
 
-        CurvePloter.plot_curve(data_path=data_path,
-                            save_fig_path = save_fig_path)
+        CurvePloter.plot_curve(data_save_path = data_save_path,
+                               data_save_name = data_save_name,
+                               save_fig_path = save_fig_path)
     else:
         raise TypeError('wrong mode, please make sure the mode number is 0 or 1')
