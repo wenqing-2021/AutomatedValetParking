@@ -1,8 +1,8 @@
 '''
 Author: wenqing-hnu
 Date: 2022-10-20
-LastEditors: wenqing-hnu
-LastEditTime: 2022-11-12
+LastEditors: wenqing-2021 1140349586@qq.com
+LastEditTime: 2023-07-11 10:54:48
 FilePath: /Automated Valet Parking/main.py
 Description: the main file of the hybrid a star algorithm for parking
 
@@ -13,6 +13,7 @@ Copyright (c) 2022 by wenqing-hnu, All Rights Reserved.
 from path_plan import path_planner
 from animation.animation import ploter, plt
 from animation.record_solution import DataRecorder
+from animation.curve_plot import CurvePloter
 from map import costmap
 from velocity_plan import velocity_planner
 from interpolation import path_interpolation
@@ -109,7 +110,7 @@ def main(file, config):
                            color='gray', show_car=True)
     plt.legend()
     fig_name = args.case_name + '.png'
-    fig_path = config['pic_path']
+    fig_path = os.path.join(config['pic_path'], args.case_name)
     if not os.path.exists(fig_path):
         os.makedirs(fig_path)
     save_fig = os.path.join(fig_path, fig_name)
@@ -125,7 +126,9 @@ def main(file, config):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='hybridAstar')
     parser.add_argument("--config_name", type=str, default="config")
-    parser.add_argument("--case_name", type=str, default="Case8")
+    parser.add_argument("--case_name", type=str, default="Case4")
+    parser.add_argument("--mode", type=int, default=0,
+                        help='0: solve this scenario, 1: load result and plot figure')
     args = parser.parse_args()
 
     # initial
@@ -136,4 +139,15 @@ if __name__ == '__main__':
     case_name = args.case_name + '.csv'
     file = os.path.join(config['Benchmark_path'], case_name)
 
-    main(file=file, config=config)
+    if (args.mode == 0):
+        main(file=file, config=config)
+    elif (args.mode == 1):
+        data_save_name = 'Solution_' + case_name
+        data_path = os.path.join(config['save_path'], data_save_name)
+
+        save_fig_path = os.path.join(config['pic_path'], args.case_name)
+
+        CurvePloter.plot_curve(data_path=data_path,
+                            save_fig_path = save_fig_path)
+    else:
+        raise TypeError('wrong mode, please make sure the mode number is 0 or 1')

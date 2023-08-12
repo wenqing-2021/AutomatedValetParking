@@ -60,7 +60,7 @@ The Case1.csv is provided by https://www.tpcap.net/#/benchmarks, and the details
 **Note**: you can build your own parking map based on the above rules and store the .csv file in the BenchmarkCase folder.
 
 ## 2. Usage
-run the main.py to show the animation process
+run the main.py to solve the scenario and show the animation process. There are two modes, mode 0 is to solve the scenario, and mode 1 is to plot the speed or accelariot curve.
 ```
 python main.py
 ```
@@ -69,17 +69,17 @@ The solution of the trajectory is stored as a .csv file and its column name is `
 
 The aniamation pictures including gif and png is stored in the pictures folder.
 
-![case1_png](pictures/Case1.png "Case_1 Traj_Png")
+![case1_png](pictures/Case1/Case1.png "Case_1 Traj_Png")
 
-![case1_png](pictures/Case2.png "Case_2 Traj_Png")
+![case1_png](pictures/Case2/Case2.png "Case_2 Traj_Png")
 
-![case1_png](pictures/Case3.png "Case_3 Traj_Png")
+![case1_png](pictures/Case3/Case3.png "Case_3 Traj_Png")
 
-![Case1_gif](pictures/Case1.gif "Case_1_Traj_gif")
+![Case1_gif](pictures/Case1/Case1.gif "Case_1_Traj_gif")
 
-![Case1_gif](pictures/Case2.gif "Case_2_Traj_gif")
+![Case1_gif](pictures/Case2/Case2.gif "Case_2_Traj_gif")
 
-![Case1_gif](pictures/Case3.gif "Case_3_Traj_gif")
+![Case1_gif](pictures/Case3/Case3.gif "Case_3_Traj_gif")
 
 ## 3. Todo List
  
