@@ -2,7 +2,7 @@
 Author: wenqing-hnu
 Date: 2022-10-20
 LastEditors: wenqing-hnu
-LastEditTime: 2022-11-12
+LastEditTime: 2023-08-12
 FilePath: /Automated Valet Parking/optimization/ocp_optimization.py
 Description: use ipopt to solve the optimization problem
 
@@ -617,9 +617,9 @@ class ocp_optimization:
         # solution
         model.variables.pprint()
         model.obj1.pprint()
-        # solver = pyo.SolverFactory(
-        # 'ipopt', executable=solver_path)  # 指定 ipopt 作为求解器
-        solver = pyo.SolverFactory('ipopt')
+        solver = pyo.SolverFactory(
+        'ipopt', executable=solver_path)  # 指定 ipopt 作为求解器
+        # solver = pyo.SolverFactory('ipopt')
         solver.options['max_iter'] == 1000
         solution = solver.solve(model)
         solution.write()
