@@ -106,9 +106,10 @@ def main(file, config):
     DataRecorder.record(save_path=config['save_path'] + '_preopt',
                         save_name=case_name, trajectory=final_ocp_path)
 
-    # animation
+    # animation — create figure with target size first
+    plt.figure(1, dpi=300, figsize=(10, 7))
     ploter.plot_obstacles(map=park_map)
-    park_map.visual_cost_map()
+    # park_map.visual_cost_map()
     ploter.plot_final_path(path=original_path, label='Hybrid A*',
                            color='green', show_car=False)
     ploter.plot_final_path(path=final_opt_path, label='Optimized Path',
@@ -117,13 +118,20 @@ def main(file, config):
                            color='red', show_car=False)
     ploter.plot_final_path(path=final_ocp_path, label='Optimized Traj',
                            color='gray', show_car=True)
-    plt.legend()
+
+    # set view limits based on path bounds ±3m
+    all_x = [p[0] for p in final_ocp_path]
+    all_y = [p[1] for p in final_ocp_path]
+    plt.xlim(min(all_x) - 5, max(all_x) + 5)
+    plt.ylim(min(all_y) - 5, max(all_y) + 5)
+    plt.axis('off')
+    plt.legend(fontsize=14)
     fig_name = args.case_name + '.png'
     fig_path = os.path.join(config['pic_path'], args.case_name)
     if not os.path.exists(fig_path):
         os.makedirs(fig_path)
     save_fig = os.path.join(fig_path, fig_name)
-    plt.savefig(save_fig, dpi=600)
+    plt.savefig(save_fig, dpi=300)
     plt.close()
     gif_name = args.case_name + '.gif'
     save_gif_name = os.path.join(fig_path, gif_name)

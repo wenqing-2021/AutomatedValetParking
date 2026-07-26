@@ -31,17 +31,15 @@ class ploter:
         
         ## create start vahicle and terminate vehicle
         temp = map.case.vehicle.create_polygon(map.case.x0, map.case.y0, map.case.theta0)
-        plt.plot(temp[:, 0], temp[:, 1], linestyle='--', linewidth = 0.4, color = 'green')
+        plt.plot(temp[:, 0], temp[:, 1], linestyle='--', linewidth = 1.0, color = 'green')
         temp = map.case.vehicle.create_polygon(map.case.xf, map.case.yf, map.case.thetaf)
-        plt.plot(temp[:, 0], temp[:, 1], linestyle='--', linewidth = 0.4, color = 'red')
+        plt.plot(temp[:, 0], temp[:, 1], linestyle='--', linewidth = 1.0, color = 'red')
 
         ## create arrow
         plt.arrow(map.case.x0, map.case.y0, np.cos(map.case.theta0), np.sin(map.case.theta0), width=0.2, color = "gold")
         plt.arrow(map.case.xf, map.case.yf, np.cos(map.case.thetaf), np.sin(map.case.thetaf), width=0.2, color = "gold")
 
-        plt.title("Hybrid A Start Path")
-        plt.xlim(map.boundary[0], map.boundary[1])
-        plt.ylim(map.boundary[2], map.boundary[3])
+        plt.axis('off')
         plt.gca().set_aspect('equal', adjustable = 'box')
         plt.gca().set_axisbelow(True)
         plt.draw()
@@ -61,14 +59,14 @@ class ploter:
 
     @staticmethod
     def plot_curve(x,y,color='grey',label=None):
-        plt.plot(x,y,'-',linewidth=0.8,color=color,label=label)
+        plt.plot(x,y,'-',linewidth=1.2,color=color,label=label)
         plt.draw()
 
     @staticmethod
     def plot_final_path(path, color='green', show_car=False, label:str=None):
         x,y=[],[]
         v = Vehicle()
-        fig1 = plt.figure(1, dpi=600, figsize=(16,12))
+        plt.figure(1)
         
         for i in range(len(path)):
             x.append(path[i][0])
@@ -79,7 +77,7 @@ class ploter:
                 ploter.plot_curve(x,y,color)
             if show_car:
                 points = v.create_polygon(path[i][0], path[i][1], path[i][2])
-                plt.plot(points[:, 0], points[:, 1], linestyle='-', linewidth = 0.4, color = color)
+                plt.plot(points[:, 0], points[:, 1], linestyle='-', linewidth = 0.8, color = color)
             plt.draw()
             plt.pause(0.1)
         
@@ -92,7 +90,7 @@ class ploter:
         ploter.plot_obstacles(map)
         plt.title('Collision Position')
         temp = v.create_polygon(x, y, theta)
-        plt.plot(temp[:, 0], temp[:, 1], linestyle='--', linewidth = 0.4, color = 'blue')
+        plt.plot(temp[:, 0], temp[:, 1], linestyle='--', linewidth = 0.8, color = 'blue')
         # compute circle diameter
         Rd = 0.5 * np.sqrt(((v.lr+v.lw+v.lf)/2)**2 + (v.lb**2))
         # compute circle center position
@@ -110,18 +108,24 @@ class ploter:
     
     @staticmethod
     def save_gif(path, color='green', show_car=False, save_gif_name=None, map=None):
-        fig = plt.figure(2, dpi=300, figsize=(16,12))
+        fig = plt.figure(2, dpi=300, figsize=(10, 7))
         ploter.plot_obstacles(map=map, fig_id=2)
+        plt.axis('off')
+        # set view limits based on path bounds ±5m
+        all_x = [p[0] for p in path]
+        all_y = [p[1] for p in path]
+        plt.xlim(min(all_x) - 5, max(all_x) + 5)
+        plt.ylim(min(all_y) - 5, max(all_y) + 5)
         x,y=[],[]
         v = Vehicle()
         imgs_list = []
         for i in range(len(path)):
             x.append(path[i][0])
             y.append(path[i][1])
-            path_imgs = plt.plot(x,y,'-',linewidth=0.8,color=color)
+            path_imgs = plt.plot(x,y,'-',linewidth=1.2,color=color)
             if show_car:
                 points = v.create_polygon(path[i][0], path[i][1], path[i][2])
-                car_imgs = plt.plot(points[:, 0], points[:, 1], linestyle='-', linewidth = 0.4, color = color)
+                car_imgs = plt.plot(points[:, 0], points[:, 1], linestyle='-', linewidth = 0.8, color = color)
                 imgs_list.append(car_imgs)
             plt.draw()
             plt.pause(0.1)

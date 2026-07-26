@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="800" viewBox="0 0 1800 800" role="img" aria-labelledby="title desc">
+  <title id="title">Automated Valet Parking</title>
+  <desc id="desc">Academic planning architecture diagram. Scenario and Hybrid A-star initial solution flow into QP path smoothing and cubic interpolation, followed by speed planning and nonlinear optimal control solved by IPOPT.</desc>
+  <defs>
+    <style>
+      .page { fill: #f8fafc; }
+      .title { font: 700 38px Georgia, 'Times New Roman', serif; fill: #102a43; }
+      .stage-id { font: 700 13px Arial, sans-serif; fill: #ffffff; letter-spacing: 1.5px; }
+      .stage-title { font: 700 24px Georgia, 'Times New Roman', serif; fill: #ffffff; }
+      .card-title { font: 700 16px Arial, sans-serif; fill: #102a43; }
+      .label { font: 600 13px Arial, sans-serif; fill: #334e68; }
+      .small { font: 400 12px Arial, sans-serif; fill: #52606d; }
+      .formula { font: italic 17px Georgia, 'Times New Roman', serif; fill: #243b53; }
+      .formula-small { font: italic 14px Georgia, 'Times New Roman', serif; fill: #334e68; }
+      .output { font: 700 14px Arial, sans-serif; fill: #102a43; }
+      .flow-label { font: 700 11px Arial, sans-serif; fill: #52606d; letter-spacing: 1px; }
+      .chip { font: 600 11px Arial, sans-serif; fill: #334e68; }
+      .axis { stroke: #94a3b8; stroke-width: 1.4; }
+      .grid { stroke: #d8e1ea; stroke-width: 1; }
+      .inner-arrow { fill: none; stroke: #8797aa; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+    <filter id="shadow" x="-10%" y="-8%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#243b53" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8.5" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#8797aa"/>
+    </marker>
+    <marker id="path-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <rect class="page" width="1800" height="800"/>
+  <text class="title" x="58" y="70">Automated Valet Parking</text>
+  <line x1="58" y1="104" x2="1742" y2="104" stroke="#cbd5e1" stroke-width="1.5"/>
+
+  <!-- ==================== STAGE 1 ==================== -->
+  <g filter="url(#shadow)">
+    <rect x="55" y="130" width="520" height="610" rx="16" fill="#ffffff" stroke="#b7cce5" stroke-width="1.5"/>
+    <rect x="55" y="130" width="520" height="64" rx="16" fill="#0f4c81"/>
+    <rect x="55" y="176" width="520" height="18" fill="#0f4c81"/>
+  </g>
+  <text class="stage-id" x="79" y="158">01</text>
+  <text class="stage-title" x="79" y="183">Scenario and Initial Solution</text>
+
+  <!-- Scenario card -->
+  <rect x="79" y="218" width="472" height="150" rx="11" fill="#eef5fb"/>
+  <rect x="79" y="218" width="6" height="150" rx="3" fill="#3b82c4"/>
+  <text class="card-title" x="101" y="245">Scenario model</text>
+
+  <!-- Miniature parking map -->
+  <g transform="translate(101 260)">
+    <rect x="0" y="0" width="170" height="88" rx="4" fill="#ffffff" stroke="#9fb4c9"/>
+    <path class="grid" d="M34 0V88 M68 0V88 M102 0V88 M136 0V88 M0 22H170 M0 44H170 M0 66H170"/>
+    <rect x="16" y="9" width="42" height="18" rx="2" fill="#64748b"/>
+    <rect x="112" y="60" width="43" height="18" rx="2" fill="#64748b"/>
+    <rect x="119" y="8" width="18" height="34" rx="2" fill="#94a3b8"/>
+    <path d="M27 70 C53 64, 55 38, 83 42 S120 53, 143 34" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#path-arrow)"/>
+    <circle cx="25" cy="71" r="5" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="145" cy="32" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+  </g>
+
+  <text class="formula-small" x="296" y="276">qₛ = (xₛ, yₛ, θₛ)</text>
+  <text class="formula-small" x="296" y="302">qᵍ = (xᵍ, yᵍ, θᵍ)</text>
+  <text class="formula-small" x="296" y="328">𝒪 = {P₁, …, Pₘ}</text>
+  <text class="small" x="296" y="350">vehicle limits · safety margin</text>
+
+  <!-- Uniform internal arrow 1 -->
+  <path class="inner-arrow" d="M315 368 V418"/>
+
+  <!-- Hybrid A* card -->
+  <rect x="79" y="418" width="472" height="192" rx="11" fill="#f7faff" stroke="#d9e6f3"/>
+  <text class="card-title" x="101" y="445">Hybrid A* search</text>
+
+  <!-- Lattice-search illustration -->
+  <g transform="translate(101 463)">
+    <path d="M5 100 C40 98, 55 79, 76 67" fill="none" stroke="#2563eb" stroke-width="3"/>
+    <path d="M5 100 C38 92, 54 54, 83 47" fill="none" stroke="#93c5fd" stroke-width="2"/>
+    <path d="M5 100 C42 109, 63 91, 91 96" fill="none" stroke="#93c5fd" stroke-width="2"/>
+    <path d="M76 67 C103 48, 119 38, 151 38" fill="none" stroke="#2563eb" stroke-width="3"/>
+    <path d="M76 67 C108 70, 126 65, 155 78" fill="none" stroke="#93c5fd" stroke-width="2"/>
+    <path d="M76 67 C94 83, 112 101, 143 105" fill="none" stroke="#93c5fd" stroke-width="2"/>
+    <circle cx="5" cy="100" r="5" fill="#16a34a"/>
+    <circle cx="76" cy="67" r="5" fill="#2563eb"/>
+    <circle cx="151" cy="38" r="6" fill="#dc2626"/>
+    <rect x="108" y="78" width="29" height="17" rx="2" fill="#94a3b8" opacity="0.65"/>
+  </g>
+
+  <text class="formula" x="290" y="480">f(n) = g(n) + h(n)</text>
+  <text class="formula-small" x="290" y="510">h = max(h<tspan baseline-shift="sub" font-size="10">Dijkstra</tspan>, h<tspan baseline-shift="sub" font-size="10">RS</tspan>)</text>
+  <rect x="290" y="532" width="68" height="24" rx="12" fill="#e3effb"/>
+  <text class="chip" x="305" y="548">F / R</text>
+  <rect x="366" y="532" width="85" height="24" rx="12" fill="#e3effb"/>
+  <text class="chip" x="381" y="548">collision</text>
+  <rect x="459" y="532" width="70" height="24" rx="12" fill="#e3effb"/>
+  <text class="chip" x="474" y="548">RS shot</text>
+  <text class="small" x="290" y="583">kinematic expansion · gear-change cost</text>
+
+  <!-- Uniform internal arrow 2 -->
+  <path class="inner-arrow" d="M315 610 V660"/>
+
+  <rect x="79" y="660" width="472" height="54" rx="10" fill="#e7f1fb"/>
+  <text class="output" x="101" y="684">Π₀ = {q₀, q₁, …, qₙ}</text>
+  <text class="small" x="330" y="684">split at gear changes</text>
+
+  <!-- ==================== STAGE 2 ==================== -->
+  <g filter="url(#shadow)">
+    <rect x="640" y="130" width="520" height="610" rx="16" fill="#ffffff" stroke="#b8ddd7" stroke-width="1.5"/>
+    <rect x="640" y="130" width="520" height="64" rx="16" fill="#0f766e"/>
+    <rect x="640" y="176" width="520" height="18" fill="#0f766e"/>
+  </g>
+  <text class="stage-id" x="664" y="158">02</text>
+  <text class="stage-title" x="664" y="183">Path Smoothing and Interpolation</text>
+
+  <!-- QP card -->
+  <rect x="664" y="218" width="472" height="218" rx="11" fill="#effaf7"/>
+  <rect x="664" y="218" width="6" height="218" rx="3" fill="#14b8a6"/>
+  <text class="card-title" x="686" y="245">Quadratic-program path smoothing</text>
+
+  <!-- Raw versus smoothed path illustration -->
+  <g transform="translate(686 269)">
+    <rect x="0" y="0" width="176" height="103" rx="5" fill="#ffffff" stroke="#b7d7d1"/>
+    <path d="M13 85 L49 40 L78 72 L116 30 L160 17" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4"/>
+    <path d="M13 85 C42 68, 55 61, 78 57 S124 30, 160 17" fill="none" stroke="#0f766e" stroke-width="3"/>
+    <path d="M13 73 C45 55, 60 50, 79 46 S126 20, 158 8" fill="none" stroke="#99f6e4" stroke-width="12" opacity="0.35"/>
+    <circle cx="13" cy="85" r="4" fill="#0f766e"/>
+    <circle cx="160" cy="17" r="4" fill="#0f766e"/>
+  </g>
+
+  <text class="formula" x="886" y="281">min ½XᵀPX + qᵀX</text>
+  <text class="formula-small" x="886" y="312">AX = b</text>
+  <text class="formula-small" x="976" y="312">GX ≤ h</text>
+  <rect x="886" y="334" width="72" height="24" rx="12" fill="#dff4ef"/>
+  <text class="chip" x="900" y="350">smooth</text>
+  <rect x="966" y="334" width="78" height="24" rx="12" fill="#dff4ef"/>
+  <text class="chip" x="980" y="350">clearance</text>
+  <rect x="1052" y="334" width="62" height="24" rx="12" fill="#dff4ef"/>
+  <text class="chip" x="1066" y="350">κ limit</text>
+  <text class="small" x="886" y="385">fixed endpoints · slack ξ ≥ 0</text>
+  <text class="formula-small" x="886" y="411">X* = arg min J(X, ξ)</text>
+
+  <!-- Uniform internal arrow 1 -->
+  <path class="inner-arrow" d="M900 436 V486"/>
+
+  <!-- Cubic card -->
+  <rect x="664" y="486" width="472" height="166" rx="11" fill="#f5fbfa" stroke="#d4ebe7"/>
+  <text class="card-title" x="686" y="513">Cubic interpolation</text>
+
+  <!-- Cubic plot -->
+  <g transform="translate(686 531)">
+    <path class="axis" d="M8 102 H178 M18 112 V4"/>
+    <path d="M20 92 C55 91, 70 78, 93 54 S138 18, 170 20" fill="none" stroke="#7c3aed" stroke-width="3"/>
+    <circle cx="20" cy="92" r="5" fill="#0f766e"/>
+    <circle cx="170" cy="20" r="5" fill="#0f766e"/>
+    <path d="M20 92 L51 91 M139 21 L170 20" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="small" x="4" y="110">q<tspan baseline-shift="sub" font-size="9">i</tspan></text>
+    <text class="small" x="162" y="15">q<tspan baseline-shift="sub" font-size="9">i+1</tspan></text>
+  </g>
+
+  <text class="formula" x="890" y="548">y = ax³ + bx² + cx + d</text>
+  <text class="formula-small" x="890" y="581">y(xᵢ), y′(xᵢ)  →  position, θ</text>
+  <text class="formula-small" x="890" y="617">s = ∫ √(1 + y′²) dx</text>
+  <text class="small" x="890" y="642">local frame · Simpson integration</text>
+
+  <!-- Uniform internal arrow 2 -->
+  <path class="inner-arrow" d="M900 652 V702"/>
+
+  <rect x="664" y="702" width="472" height="26" rx="10" fill="#e5f4f1"/>
+  <text class="output" x="686" y="721">C(s),  s ∈ [0, L]</text>
+
+  <!-- ==================== STAGE 3 ==================== -->
+  <g filter="url(#shadow)">
+    <rect x="1225" y="130" width="520" height="610" rx="16" fill="#ffffff" stroke="#f2c990" stroke-width="1.5"/>
+    <rect x="1225" y="130" width="520" height="64" rx="16" fill="#a44b13"/>
+    <rect x="1225" y="176" width="520" height="18" fill="#a44b13"/>
+  </g>
+  <text class="stage-id" x="1249" y="158">03</text>
+  <text class="stage-title" x="1249" y="183">Speed Planning and IPOPT</text>
+
+  <!-- Speed planning card -->
+  <rect x="1249" y="218" width="472" height="174" rx="11" fill="#fff8ed"/>
+  <rect x="1249" y="218" width="6" height="174" rx="3" fill="#ef8d32"/>
+  <text class="card-title" x="1271" y="245">Speed planning</text>
+
+  <!-- v-t profile -->
+  <g transform="translate(1271 266)">
+    <path class="axis" d="M6 92 H183 M17 102 V2"/>
+    <path d="M18 91 C32 90, 44 54, 66 30 C72 24, 79 22, 88 22 L125 22 C137 22, 145 34, 153 52 C162 70, 170 89, 179 91" fill="none" stroke="#ea580c" stroke-width="3"/>
+    <path d="M88 22 V92 M125 22 V92" stroke="#fdba74" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text class="small" x="0" y="10">v</text>
+    <text class="small" x="178" y="107">t</text>
+  </g>
+
+  <text class="formula" x="1482" y="273">min t<tspan baseline-shift="sub" font-size="12">f</tspan> = t₁ + π/W</text>
+  <text class="formula-small" x="1482" y="307">∫₀ᵗᶠ v(t) dt = L</text>
+  <text class="formula-small" x="1482" y="338">|v| ≤ v<tspan baseline-shift="sub" font-size="10">max</tspan>,  |a| ≤ a<tspan baseline-shift="sub" font-size="10">max</tspan></text>
+  <text class="small" x="1482" y="370">sinusoidal ramps · SLSQP</text>
+
+  <!-- Uniform internal arrow 1 -->
+  <path class="inner-arrow" d="M1485 392 V442"/>
+
+  <!-- Warm start card -->
+  <rect x="1249" y="442" width="472" height="88" rx="11" fill="#fffaf2" stroke="#f7dfbd"/>
+  <text class="card-title" x="1271" y="470">Time parameterization</text>
+  <text class="formula" x="1271" y="501">Δs = ∫ v(t)dt</text>
+  <text class="formula-small" x="1440" y="501">z₀(t) = [x, y, θ, v, a, σ, ω]ᵀ</text>
+
+  <!-- Uniform internal arrow 2 -->
+  <path class="inner-arrow" d="M1485 530 V580"/>
+
+  <!-- OCP card -->
+  <rect x="1249" y="580" width="472" height="138" rx="11" fill="#fff8ed"/>
+  <rect x="1249" y="580" width="6" height="138" rx="3" fill="#ef8d32"/>
+  <text class="card-title" x="1271" y="607">Nonlinear optimal control</text>
+  <text class="formula-small" x="1271" y="635">min  w<tspan baseline-shift="sub" font-size="10">t</tspan>t<tspan baseline-shift="sub" font-size="10">f</tspan> + Σ(w<tspan baseline-shift="sub" font-size="10">v</tspan>v² + w<tspan baseline-shift="sub" font-size="10">a</tspan>a² + w<tspan baseline-shift="sub" font-size="10">σ</tspan>σ² + w<tspan baseline-shift="sub" font-size="10">ω</tspan>ω²)</text>
+  <text class="formula-small" x="1271" y="661">ẋ = v cosθ,  ẏ = v sinθ,  θ̇ = v tanσ/L<tspan baseline-shift="sub" font-size="10">w</tspan></text>
+  <text class="small" x="1271" y="686">corridor · bounds · terminal pose</text>
+  <rect x="1573" y="670" width="122" height="28" rx="14" fill="#a44b13"/>
+  <text x="1603" y="689" style="font:700 12px Arial,sans-serif;fill:#ffffff;letter-spacing:1px">IPOPT</text>
+  <text class="output" x="1271" y="709">z*(t) = [x, y, θ, v, a, σ, ω, t]</text>
+
+  <!-- Inter-stage arrows: labels are centered above and separated from the arrows -->
+  <text class="flow-label" x="607" y="407" text-anchor="middle">PATH</text>
+  <path d="M585 430 H630" fill="none" stroke="#8797aa" stroke-width="2.4" marker-end="url(#arrow)"/>
+
+  <text class="flow-label" x="1192" y="407" text-anchor="middle">CURVE</text>
+  <path d="M1170 430 H1215" fill="none" stroke="#8797aa" stroke-width="2.4" marker-end="url(#arrow)"/>
+</svg>

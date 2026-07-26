@@ -256,7 +256,7 @@ class Map:
                     points_y_index = np.where((self.map_position[1] < original_points_position[1]) &
                                               (self.map_position[1] > (original_points_position[1]-self._discrete_y)))
 
-                    if any(points_x_index) and any(points_y_index):
+                    if len(points_x_index[0]) > 0 and len(points_y_index[0]) > 0:
                         self.cost_map[int(points_x_index[0])
                                       ][int(points_y_index[0])] = 255
 
